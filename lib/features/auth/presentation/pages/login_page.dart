@@ -77,42 +77,50 @@ class _LoginPageState extends State<LoginPage>
                     const SizedBox(height: 60),
                     // Logo
                     Container(
-                      width: 60,
-                      height: 60,
+                      width: 72,
+                      height: 72,
                       decoration: BoxDecoration(
                         gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                            blurRadius: 30,
+                            offset: const Offset(0, 12),
+                          ),
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            blurRadius: 50,
+                            offset: const Offset(0, 20),
                           ),
                         ],
                       ),
                       child: const Icon(
                         Icons.confirmation_number_rounded,
                         color: AppColors.white,
-                        size: 30,
+                        size: 36,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 36),
                     // Title
                     Text(
                       'Selamat Datang! 👋',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
+                        letterSpacing: -0.5,
+                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
                       'Masuk ke akun Anda untuk melanjutkan',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary,
+                        height: 1.5,
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -235,33 +243,58 @@ class _LoginPageState extends State<LoginPage>
                           // Login Button
                           SizedBox(
                             width: double.infinity,
-                            height: 52,
+                            height: 56,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 elevation: 0,
+                                padding: EdgeInsets.zero,
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: AppColors.white,
-                                      ),
-                                    )
-                                  : Text(
-                                      'Masuk',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.white,
-                                      ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.primaryGradient,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.4),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
                                     ),
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.2),
+                                      blurRadius: 40,
+                                      offset: const Offset(0, 16),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              AppColors.white,
+                                            ),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Masuk',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.white,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -289,33 +322,41 @@ class _LoginPageState extends State<LoginPage>
                     // Google Login
                     SizedBox(
                       width: double.infinity,
-                      height: 52,
+                      height: 56,
                       child: OutlinedButton.icon(
                         onPressed: () {},
-                        icon: Image.network(
-                          'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                          width: 20,
-                          height: 20,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Icons.g_mobiledata,
-                            size: 24,
-                            color: AppColors.textPrimary,
+                        icon: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Image.network(
+                            'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                            width: 20,
+                            height: 20,
+                            errorBuilder: (context, error, stackTrace) => const Icon(
+                              Icons.g_mobiledata,
+                              size: 24,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
                         label: Text(
                           'Masuk dengan Google',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
+                            letterSpacing: 0.2,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          side:
-                              const BorderSide(color: AppColors.border, width: 1.2),
+                          side: const BorderSide(color: AppColors.border, width: 1.5),
+                          foregroundColor: AppColors.textPrimary,
                         ),
                       ),
                     ),

@@ -58,4 +58,29 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [Color(0xFF0194F3), Color(0xFF4DB8FF)],
   );
+
+  // New Gradient Variations
+  static const LinearGradient softGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFE8F4FD), Color(0xFFD0E8F8)],
+  );
+
+  static const LinearGradient cardGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
+  );
+
+  static const LinearGradient shimmerGradient = LinearGradient(
+    begin: Alignment(-1.0, -0.5),
+    end: Alignment(1.0, 0.5),
+    colors: [
+      Color(0xFFE8ECF0),
+      Color(0xFFF5F5F5),
+      Color(0xFFE8ECF0),
+    ],
+    stops: [0.0, 0.5, 1.0],
+    tileMode: TileMode.clamp,
+  );
 }
