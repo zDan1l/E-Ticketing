@@ -11,12 +11,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:uts/main.dart';
 
 void main() {
-  testWidgets('App starts with SplashPage', (WidgetTester tester) async {
+  testWidgets('App builds successfully', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Verify that the app builds successfully and shows the splash screen
+    // Verify that the app builds successfully
     expect(find.byType(MaterialApp), findsOneWidget);
+
+    // Pump and settle to handle any pending animations
+    await tester.pump(const Duration(milliseconds: 100));
+  });
+
+  testWidgets('SplashPage displays correctly', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(const MyApp());
+
+    // Verify SplashPage elements are present
+    expect(find.byType(Scaffold), findsOneWidget);
+    expect(find.text('HelpDesk'), findsOneWidget);
+    expect(find.text('E-Ticketing System'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Pump for animation but don't wait for navigation timer
+    await tester.pump(const Duration(milliseconds: 500));
   });
 
   testWidgets('App theme toggle works', (WidgetTester tester) async {
@@ -28,14 +45,14 @@ void main() {
 
     // Toggle theme to dark mode
     themeNotifier.toggleTheme();
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     // Verify app still builds after theme change
     expect(find.byType(MaterialApp), findsOneWidget);
 
     // Toggle back to light mode
     themeNotifier.toggleTheme();
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     // Verify app still builds
     expect(find.byType(MaterialApp), findsOneWidget);
