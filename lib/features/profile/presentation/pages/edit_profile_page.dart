@@ -55,7 +55,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surfaceContainerLowest,
         leading: ClayIconButton(
           icon: Icons.arrow_back_ios_new_rounded,
           onPressed: () => Navigator.pop(context),
@@ -94,7 +94,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             // Avatar section
             Container(
               width: double.infinity,
-              color: Colors.white,
+              color: AppColors.surfaceContainerLowest,
               padding: const EdgeInsets.symmetric(vertical: 28),
               child: Column(
                 children: [
@@ -104,10 +104,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         width: 90,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primaryContainer,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.primary,
                             width: 3,
                           ),
                         ),
@@ -135,13 +135,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               color: AppColors.primary,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.white,
+                                color: AppColors.surfaceContainerLowest,
                                 width: 2,
                               ),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.camera_alt_rounded,
-                              color: Colors.white,
+                              color: AppColors.onPrimary,
                               size: 16,
                             ),
                           ),
@@ -164,7 +164,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             // Form
             Container(
               width: double.infinity,
-              color: Colors.white,
+              color: AppColors.surfaceContainerLowest,
               padding: const EdgeInsets.all(20),
               child: Form(
                 key: _formKey,
@@ -326,7 +326,7 @@ class _AvatarOption extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 20),

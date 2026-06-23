@@ -128,12 +128,12 @@ class StatusUpdateButtons extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.update_rounded,
-                  color: AppColors.primary,
+                  color: AppColors.onPrimaryContainer,
                   size: 16,
                 ),
               ),
@@ -165,10 +165,10 @@ class StatusUpdateButtons extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
+                    color: AppColors.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: statusColor.withValues(alpha: 0.3),
+                      color: statusColor.withValues(alpha: 0.5),
                       width: 1,
                     ),
                   ),

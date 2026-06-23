@@ -77,9 +77,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surfaceContainerLowest,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surfaceContainerLowest,
         elevation: 0,
         leading: ClayIconButton(
           icon: Icons.arrow_back_ios_new_rounded,
@@ -113,7 +113,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: AppColors.primaryFixedDim.withOpacity(0.3),
+            color: AppColors.primaryContainer,
             borderRadius: BorderRadius.circular(18),
           ),
           child: const Icon(
@@ -204,7 +204,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: AppColors.successAccent.withOpacity(0.1),
+            color: AppColors.primaryContainer,
             shape: BoxShape.circle,
           ),
           child: const Icon(

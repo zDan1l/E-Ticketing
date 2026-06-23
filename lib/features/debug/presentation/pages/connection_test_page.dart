@@ -353,7 +353,7 @@ class _ResultCard extends StatelessWidget {
                 ),
                 child: Icon(
                   result.success ? Icons.check : Icons.close,
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                   size: 14,
                 ),
               ),

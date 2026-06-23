@@ -250,7 +250,7 @@ class _NotificationPageState extends State<NotificationPage> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.primaryFixedDim.withOpacity(0.3),
+              color: AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -306,7 +306,7 @@ class _NotifItem extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: AppColors.surfaceContainerLow,
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 20),

@@ -199,7 +199,7 @@ class _EmptyState extends StatelessWidget {
               width: 96,
               height: 96,
               decoration: BoxDecoration(
-                color: AppColors.secondaryContainer.withValues(alpha: 0.2),
+                color: AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(
@@ -260,7 +260,7 @@ class _UserCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: user.isActive
-                  ? AppColors.primary.withValues(alpha: 0.1)
+                  ? AppColors.primaryContainer
                   : AppColors.surfaceContainerHigh,
               shape: BoxShape.circle,
             ),
@@ -272,7 +272,7 @@ class _UserCard extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: user.isActive
-                      ? AppColors.primary
+                      ? AppColors.onPrimaryContainer
                       : AppColors.onSurfaceVariant,
                 ),
               ),
@@ -310,18 +310,18 @@ class _UserCard extends StatelessWidget {
                   children: [
                     CustomBadge(
                       text: user.role.label,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      textColor: AppColors.primary,
+                      backgroundColor: AppColors.primaryContainer,
+                      textColor: AppColors.onPrimaryContainer,
                     ),
                     const SizedBox(width: 8),
                     CustomBadge(
                       text: user.isActive ? 'AKTIF' : 'NONAKTIF',
                       backgroundColor: user.isActive
-                          ? AppColors.successAccent.withValues(alpha: 0.1)
-                          : AppColors.error.withValues(alpha: 0.1),
+                          ? AppColors.primaryContainer
+                          : AppColors.errorContainer,
                       textColor: user.isActive
-                          ? AppColors.tertiaryContainer
-                          : AppColors.error,
+                          ? AppColors.onPrimaryContainer
+                          : AppColors.onErrorContainer,
                     ),
                   ],
                 ),

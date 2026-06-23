@@ -105,7 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppColors.canvas,
       body: CustomScrollView(
         slivers: [
           // Header
@@ -138,12 +138,12 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: AppColors.white.withValues(alpha: 0.2),
+                              color: AppColors.onPrimary.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.settings_outlined,
-                              color: AppColors.white,
+                              color: AppColors.onPrimary,
                               size: 20,
                             ),
                           ),
@@ -155,7 +155,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: AppColors.surfaceContainerLowest,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -179,7 +179,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         _authService.currentUser?.email ?? '',
                         style: AppTheme().bodyMedium.copyWith(
-                          color: AppColors.onPrimary.withValues(alpha: 0.8),
+                          color: AppColors.onPrimaryContainer,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -187,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: AppColors.surfaceContainerLowest,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -301,7 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               themeNotifier.toggleTheme();
                             });
                           },
-                          activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
+                          activeTrackColor: AppColors.primaryContainer,
                           activeThumbColor: AppColors.primary,
                         ),
                         onTap: () {
@@ -465,7 +465,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFE5E7EB)),
+                    side: const BorderSide(color: AppColors.outlineVariant),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                   ),
@@ -480,7 +480,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _vDivider() {
-    return Container(width: 1, height: 32, color: const Color(0xFFE5E7EB));
+    return Container(width: 1, height: 32, color: AppColors.outlineVariant);
   }
 }
 
@@ -525,7 +525,7 @@ class _MenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -573,10 +573,10 @@ class _MenuItem extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
+                color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: const Color(0xFF1F2937), size: 20),
+              child: Icon(icon, color: AppColors.onSurface, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -602,9 +602,9 @@ class _MenuItem extends StatelessWidget {
               ),
             ),
             trailing ??
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: Color(0xFF9CA3AF),
+                  color: AppColors.onSurfaceVariant,
                   size: 20,
                 ),
           ],

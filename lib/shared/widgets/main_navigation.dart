@@ -181,9 +181,9 @@ class _StyleGuideNavTab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.secondaryContainer
-              : Colors.transparent, //
-          borderRadius: BorderRadius.circular(12), //
+              ? AppColors.primary
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -198,23 +198,21 @@ class _StyleGuideNavTab extends StatelessWidget {
                   icon,
                   size: 22,
                   color: isSelected
-                      ? AppColors
-                            .onSecondaryContainer //
-                      : AppColors.onSurfaceVariant, //
+                      ? AppColors.onPrimary
+                      : AppColors.onSurfaceVariant,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   label,
                   style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans', //
-                    fontSize: 11, //
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 11,
                     fontWeight: isSelected
                         ? FontWeight.w700
-                        : FontWeight.w500, // Fixed syntax typo here
+                        : FontWeight.w500,
                     color: isSelected
-                        ? AppColors
-                              .onSecondaryContainer //
-                        : AppColors.onSurfaceVariant, //
+                        ? AppColors.onPrimary
+                        : AppColors.onSurfaceVariant,
                     letterSpacing: 0.2,
                   ),
                 ),

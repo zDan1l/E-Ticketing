@@ -31,20 +31,20 @@ class PriorityBadge extends StatelessWidget {
 
     switch (priority) {
       case PriorityLevel.critical:
-        bgColor = AppColors.error.withValues(alpha: 0.1);
-        textColor = AppColors.error;
+        bgColor = AppColors.errorContainer;
+        textColor = AppColors.onErrorContainer;
         break;
       case PriorityLevel.high:
         bgColor = AppColors.errorContainer;
         textColor = AppColors.onErrorContainer;
         break;
       case PriorityLevel.medium:
-        bgColor = AppColors.secondaryContainer.withValues(alpha: 0.2);
+        bgColor = AppColors.secondaryContainer;
         textColor = AppColors.onSecondaryContainer;
         break;
       case PriorityLevel.low:
-        bgColor = AppColors.successAccent.withValues(alpha: 0.1);
-        textColor = AppColors.tertiaryContainer;
+        bgColor = AppColors.primaryContainer;
+        textColor = AppColors.onPrimaryContainer;
         break;
     }
 
@@ -89,20 +89,20 @@ class StatusBadge extends StatelessWidget {
         textColor = AppColors.onPrimaryContainer;
         break;
       case TicketStatus.inProgress:
-        bgColor = AppColors.warningAccent.withValues(alpha: 0.2);
+        bgColor = AppColors.secondaryContainer;
         textColor = AppColors.onSecondaryContainer;
         break;
       case TicketStatus.resolved:
-        bgColor = AppColors.successAccent.withValues(alpha: 0.2);
-        textColor = AppColors.tertiaryContainer;
+        bgColor = AppColors.tertiaryContainer;
+        textColor = AppColors.onTertiaryContainer;
         break;
       case TicketStatus.closed:
         bgColor = AppColors.surfaceContainerHigh;
         textColor = AppColors.onSurfaceVariant;
         break;
       case TicketStatus.reopened:
-        bgColor = AppColors.tertiary.withValues(alpha: 0.15);
-        textColor = AppColors.tertiary;
+        bgColor = AppColors.tertiaryContainer;
+        textColor = AppColors.onTertiary;
         break;
     }
 

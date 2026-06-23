@@ -113,7 +113,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surfaceContainerLowest,
         leading: ClayIconButton(
           icon: Icons.close_rounded,
           onPressed: () => Navigator.pop(context),
@@ -133,7 +133,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
               const SizedBox(height: 12),
               // Title & Description
               Container(
-                color: Colors.white,
+                color: AppColors.surfaceContainerLowest,
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,7 +177,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
               const SizedBox(height: 12),
               // Category Selection
               Container(
-                color: Colors.white,
+                color: AppColors.surfaceContainerLowest,
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,7 +216,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
               const SizedBox(height: 12),
               // Priority Selection
               Container(
-                color: Colors.white,
+                color: AppColors.surfaceContainerLowest,
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +266,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
               const SizedBox(height: 12),
               // File Attachments
               Container(
-                color: Colors.white,
+                color: AppColors.surfaceContainerLowest,
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

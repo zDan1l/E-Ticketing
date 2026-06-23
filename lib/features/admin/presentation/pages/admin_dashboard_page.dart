@@ -364,10 +364,10 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.outlineVariant.withOpacity(0.5),
+          color: AppColors.outlineVariant,
           width: 1,
         ),
       ),
@@ -380,7 +380,7 @@ class _StatCard extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
+                  color: AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -429,10 +429,10 @@ class _RoleStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.border,
+          color: AppColors.outlineVariant,
           width: 1,
         ),
       ),
@@ -476,10 +476,10 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                color: AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: AppColors.primary,
                   width: 2,
                 ),
               ),

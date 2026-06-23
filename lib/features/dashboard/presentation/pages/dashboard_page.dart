@@ -146,19 +146,17 @@ class _DashboardPageState extends State<DashboardPage>
                         Container(
                           width: 48,
                           height: 48,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1), //
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                           child: Center(
                             child: Text(
                               currentUser?.avatar ?? '?',
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    //
-                                    color: AppColors.primary, //
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: AppColors.onPrimary,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ),
@@ -271,13 +269,13 @@ class _DashboardPageState extends State<DashboardPage>
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1), //
+                      color: AppColors.errorContainer,
                       borderRadius: BorderRadius.circular(
                         AppTheme.radiusDefault,
-                      ), //
+                      ),
                       border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3),
-                      ), //
+                        color: AppColors.error,
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -323,10 +321,8 @@ class _DashboardPageState extends State<DashboardPage>
                     ),
                     ChipBadge(
                       label: 'REALTIME',
-                      backgroundColor: AppColors.primaryContainer.withValues(
-                        alpha: 0.1,
-                      ), //
-                      textColor: AppColors.primary, //
+                      backgroundColor: AppColors.primaryContainer,
+                      textColor: AppColors.onPrimaryContainer,
                       isSelected: true,
                     ),
                   ],
@@ -353,10 +349,8 @@ class _DashboardPageState extends State<DashboardPage>
                         value: totalTickets > 0
                             ? (stats['resolved'] ?? 0) / totalTickets
                             : 0.0,
-                        progressColor: AppColors.successAccent, //
-                        backgroundColor: AppColors.white.withValues(
-                          alpha: 0.2,
-                        ), //
+                        progressColor: AppColors.onPrimary,
+                        backgroundColor: AppColors.surfaceContainerHighest,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -691,16 +685,16 @@ class _RecentTicketCard extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerHigh, //
+                      color: AppColors.primary,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(color: AppColors.surfaceContainerLowest, width: 2),
                     ),
                     child: Center(
                       child: Text(
                         ticket.assigneeAvatar ?? '?',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          //
                           fontWeight: FontWeight.w700,
+                          color: AppColors.onPrimary,
                         ),
                       ),
                     ),

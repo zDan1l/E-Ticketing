@@ -92,9 +92,9 @@ class _RegisterPageState extends State<RegisterPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surfaceContainerLowest,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surfaceContainerLowest,
         elevation: 0,
         leading: ClayIconButton(
           icon: Icons.arrow_back_ios_new_rounded,

@@ -285,10 +285,10 @@ class _TicketListPageState extends State<TicketListPage> {
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
+                      color: AppColors.errorContainer,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3),
+                        color: AppColors.error,
                       ),
                     ),
                     child: Row(
@@ -403,10 +403,10 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                color: AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: AppColors.primary,
                   width: 2,
                 ),
               ),
@@ -603,7 +603,7 @@ class _TicketCard extends StatelessWidget {
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
+                    color: AppColors.primaryContainer,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -647,7 +647,7 @@ class _IconCount extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color == AppColors.primary ? AppColors.primaryContainer : AppColors.tertiaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

@@ -72,7 +72,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.successAccent.withOpacity(0.1),
+                color: AppColors.primaryContainer,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -118,7 +118,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surfaceContainerLowest,
         leading: ClayIconButton(
           icon: Icons.arrow_back_ios_new_rounded,
           onPressed: () => Navigator.pop(context),
@@ -159,7 +159,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             // Form
             Container(
               width: double.infinity,
-              color: Colors.white,
+              color: AppColors.surfaceContainerLowest,
               padding: const EdgeInsets.all(20),
               child: Form(
                 key: _formKey,

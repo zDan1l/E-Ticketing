@@ -203,7 +203,7 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                color: AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(
@@ -301,7 +301,7 @@ class _ActivityCard extends StatelessWidget {
 
     return StyledCard(
       padding: const EdgeInsets.all(18),
-      glowColor: color.withOpacity(0.2),
+      glowColor: AppColors.outlineVariant,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -312,7 +312,7 @@ class _ActivityCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
