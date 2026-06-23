@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../models/ticket_model.dart';
 import '../../../../models/role_model.dart';
 import '../../../../services/auth_service.dart';
@@ -11,7 +11,6 @@ import '../../../../services/user_api_service.dart';
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
-  // GlobalKey to access dashboard state from parent widgets
   static final GlobalKey<_DashboardPageState> dashboardKey =
       GlobalKey<_DashboardPageState>();
 
@@ -31,7 +30,6 @@ class _DashboardPageState extends State<DashboardPage>
   String? _errorMessage;
   final TextEditingController _searchController = TextEditingController();
 
-  // Admin-only stats
   Map<String, dynamic>? _adminStats;
 
   @override
@@ -67,15 +65,12 @@ class _DashboardPageState extends State<DashboardPage>
 
     try {
       final userRole = _authService.currentUserRole;
-      print('🔍 Dashboard: Loading data for role: ${userRole?.value}');
 
-      // Load stats and tickets in parallel
       final futures = <Future>[
         _ticketService.getTicketStats(userRole: userRole),
         _ticketService.getTickets(userRole: userRole),
       ];
 
-      // Load admin stats in parallel if admin
       if (userRole == UserRole.admin) {
         futures.add(_userApiService.getDashboardStats());
       }
@@ -85,9 +80,6 @@ class _DashboardPageState extends State<DashboardPage>
       if (mounted) {
         final ticketsResponse = results[1] as Map<String, dynamic>;
         final tickets = ticketsResponse['tickets'] as List<TicketModel>? ?? [];
-
-        print('📊 Dashboard: Stats = ${results[0]}');
-        print('🎫 Dashboard: Total tickets received = ${tickets.length}');
 
         setState(() {
           _stats = results[0] as Map<String, int>;
@@ -99,7 +91,6 @@ class _DashboardPageState extends State<DashboardPage>
         });
       }
     } catch (e) {
-      print('❌ Dashboard: Error loading data = $e');
       if (mounted) {
         setState(() {
           _errorMessage = 'Gagal memuat data: ${e.toString()}';
@@ -116,56 +107,58 @@ class _DashboardPageState extends State<DashboardPage>
     final currentUser = _authService.currentUser;
 
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: AppColors.surfaceBackground,
+      return const Scaffold(
+        backgroundColor: AppColors.canvas, //
         body: Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-          ),
+          child: CircularProgress(value: 0.3, size: 48, strokeWidth: 4),
         ),
       );
     }
 
-    final stats = _stats ?? {'open': 0, 'in_progress': 0, 'resolved': 0, 'closed': 0};
+    final stats =
+        _stats ?? {'open': 0, 'in_progress': 0, 'resolved': 0, 'closed': 0};
     final recentTickets = _recentTickets;
-    final totalTickets = (stats['open'] ?? 0) +
+    final totalTickets =
+        (stats['open'] ?? 0) +
         (stats['in_progress'] ?? 0) +
         (stats['resolved'] ?? 0) +
         (stats['closed'] ?? 0);
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: AppColors.canvas, //
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Header Section
+            // ── TOP NAVIGATION ROW ───────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.containerPadding, //
+                  AppTheme.containerPadding,
+                  AppTheme.containerPadding,
+                  AppTheme.stackGap,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // User Info
                     Row(
                       children: [
                         Container(
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1), //
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
-                            ),
                           ),
-                          child: CircleAvatar(
-                            backgroundColor: AppColors.primary.withOpacity(0.1),
+                          child: Center(
                             child: Text(
                               currentUser?.avatar ?? '?',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    //
+                                    color: AppColors.primary, //
+                                    fontWeight: FontWeight.w800,
+                                  ),
                             ),
                           ),
                         ),
@@ -175,23 +168,23 @@ class _DashboardPageState extends State<DashboardPage>
                           children: [
                             Text(
                               currentUser?.name ?? 'Guest',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge, //
                             ),
                             const SizedBox(height: 2),
                             CustomBadge(
                               text: _getRoleLabel(currentUser?.role),
-                              backgroundColor: AppColors.primaryContainer,
-                              textColor: AppColors.onPrimaryContainer,
+                              backgroundColor: AppColors.primaryContainer, //
+                              textColor: AppColors.onPrimaryContainer, //
                             ),
                           ],
                         ),
                       ],
                     ),
-                    // Settings Button
                     ClayIconButton(
                       icon: Icons.settings_rounded,
+                      backgroundColor: AppColors.surfaceContainerLowest, //
+                      iconColor: AppColors.onSurfaceVariant, //
+                      size: 44,
                       onPressed: () {
                         Navigator.of(context).pushNamed('/profile');
                       },
@@ -202,33 +195,40 @@ class _DashboardPageState extends State<DashboardPage>
               ),
             ),
 
-            // Hero Section
+            // ── HERO TEXT BLOCK ──────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.containerPadding,
+                  8,
+                  AppTheme.containerPadding,
+                  AppTheme.stackGap,
+                ), //
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'E-Tickets',
-                          style: Theme.of(context).textTheme.displayLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Pusat Bantuan Digital',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.onSurfaceVariant,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'E-Tickets',
+                            style: Theme.of(context).textTheme.displayLarge, //
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            'Pusat Bantuan Digital',
+                            style: Theme.of(context).textTheme.bodyMedium, //
+                          ),
+                        ],
+                      ),
                     ),
-                    // Stats Icon Button
                     ClayIconButton(
                       icon: Icons.auto_graph_rounded,
+                      backgroundColor: AppColors.surfaceContainerLowest, //
+                      iconColor: AppColors.primary, //
+                      size: 44,
                       onPressed: () {},
                       tooltip: 'Statistics',
                     ),
@@ -237,10 +237,12 @@ class _DashboardPageState extends State<DashboardPage>
               ),
             ),
 
-            // Search Bar
+            // ── SEARCH INTERFACE ─────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.containerPadding,
+                ), //
                 child: StyledInput(
                   hint: 'Cari kendala anda...',
                   controller: _searchController,
@@ -257,36 +259,45 @@ class _DashboardPageState extends State<DashboardPage>
               ),
             ),
 
-            // Error Message (if any)
             if (_errorMessage != null)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.containerPadding,
+                    AppTheme.stackGap,
+                    AppTheme.containerPadding,
+                    0,
+                  ), //
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.error.withValues(alpha: 0.1), //
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusDefault,
+                      ), //
                       border: Border.all(
                         color: AppColors.error.withValues(alpha: 0.3),
-                      ),
+                      ), //
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                        const Icon(
+                          Icons.error_outline,
+                          color: AppColors.error,
+                          size: 20,
+                        ), //
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: AppTheme().labelSmall.copyWith(
-                              color: AppColors.error,
-                            ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: AppColors.error), //
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.refresh, size: 16),
                           onPressed: _loadData,
-                          color: AppColors.error,
+                          color: AppColors.error, //
                         ),
                       ],
                     ),
@@ -294,159 +305,248 @@ class _DashboardPageState extends State<DashboardPage>
                 ),
               ),
 
-            // Statistics Section Header
+            // ── STATS GRID HEADER ────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.containerPadding,
+                  28,
+                  AppTheme.containerPadding,
+                  12,
+                ), //
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Statistik',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context).textTheme.headlineSmall, //
                     ),
                     ChipBadge(
                       label: 'REALTIME',
-                      backgroundColor: AppColors.primaryContainer.withOpacity(0.1),
+                      backgroundColor: AppColors.primaryContainer.withValues(
+                        alpha: 0.1,
+                      ), //
+                      textColor: AppColors.primary, //
+                      isSelected: true,
                     ),
                   ],
                 ),
               ),
             ),
 
-            // Statistics Grid — white cards with colored icon accents
+            // ── BENTO METRIC SECTIONS ────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.containerPadding,
+                ), //
+                child: Column(
                   children: [
-                    Expanded(
-                      child: _StatCard(
-                        accentColor: AppColors.statusOpen,
-                        icon: Icons.info_outline_rounded,
-                        label: 'OPEN',
-                        count: stats['open'] ?? 0,
+                    BentoCard(
+                      label: 'Pencapaian Target Dukungan',
+                      value:
+                          '${stats['resolved'] ?? 0} / $totalTickets Tiket Selesai',
+                      icon: Icons.confirmation_number_outlined,
+                      backgroundColor: AppColors.primary, //
+                      textColor: AppColors.onPrimary, //
+                      footer: ProgressBar(
+                        value: totalTickets > 0
+                            ? (stats['resolved'] ?? 0) / totalTickets
+                            : 0.0,
+                        progressColor: AppColors.successAccent, //
+                        backgroundColor: AppColors.white.withValues(
+                          alpha: 0.2,
+                        ), //
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        accentColor: AppColors.statusInProgress,
-                        icon: Icons.access_time_rounded,
-                        label: 'PROGRESS',
-                        count: stats['in_progress'] ?? 0,
-                      ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BentoCard(
+                            label: 'OPEN',
+                            value: '${stats['open'] ?? 0}',
+                            icon: Icons.info_outline_rounded,
+                            backgroundColor: AppColors.statusOpen, //
+                            textColor: AppColors.onPrimary, //
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: BentoCard(
+                            label: 'PROGRESS',
+                            value: '${stats['in_progress'] ?? 0}',
+                            icon: Icons.access_time_rounded,
+                            backgroundColor: AppColors.statusInProgress, //
+                            textColor: AppColors.onPrimary, //
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BentoCard(
+                            label: 'RESOLVED',
+                            value: '${stats['resolved'] ?? 0}',
+                            icon: Icons.check_circle_outline_rounded,
+                            backgroundColor: AppColors.statusResolved, //
+                            textColor: AppColors.onSurface, //
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: BentoCard(
+                            label: 'TOTAL TIKET',
+                            value: '$totalTickets',
+                            icon: Icons.format_list_numbered_rounded,
+                            backgroundColor: AppColors.surfaceContainerHigh, //
+                            textColor: AppColors.onSurface, //
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
 
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _StatCard(
-                        accentColor: AppColors.successAccent,
-                        icon: Icons.check_circle_outline_rounded,
-                        label: 'RESOLVED',
-                        count: stats['resolved'] ?? 0,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        accentColor: AppColors.primary,
-                        icon: Icons.format_list_numbered_rounded,
-                        label: 'TOTAL',
-                        count: totalTickets,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Admin Quick Actions (only for admin role)
-            if (_authService.currentUser?.role == UserRole.admin)
+            // ── ADMIN CONSOLE OPERATIONS BLOCK ───────────────────────────────
+            // ── ADMIN CONSOLE OPERATIONS BLOCK ───────────────────────────────
+            if (_authService.currentUser?.role == UserRole.admin) ...[
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.containerPadding,
+                    32,
+                    AppTheme.containerPadding,
+                    16,
+                  ),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: AppColors.outlineVariant,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      'Admin',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.containerPadding,
+                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Admin',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      InkWell(
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/user-management'),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusDefault,
+                        ),
+                        child: const StatCard(
+                          label: 'Kelola Pengguna',
+                          value:
+                              'Daftar akun dan konfigurasi hak akses internal',
+                          icon: Icons.people_rounded,
+                          backgroundColor: AppColors.tertiary,
+                          iconColor: AppColors.onTertiary,
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _QuickActionCard(
-                              icon: Icons.people_rounded,
-                              label: 'Kelola\nPengguna',
-                              accentColor: AppColors.tertiary,
-                              onTap: () => Navigator.of(context).pushNamed('/user-management'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _QuickActionCard(
-                              icon: Icons.history_rounded,
-                              label: 'Log\nAktivitas',
-                              accentColor: AppColors.secondary,
-                              onTap: () => Navigator.of(context).pushNamed('/activity-logs'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _QuickActionCard(
-                              icon: Icons.dashboard_rounded,
-                              label: 'Statistik\nAdmin',
-                              accentColor: AppColors.primary,
-                              onTap: () => Navigator.of(context).pushNamed('/admin-dashboard'),
-                            ),
-                          ),
-                        ],
+                      InkWell(
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/activity-logs'),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusDefault,
+                        ),
+                        child: const StatCard(
+                          label: 'Log Aktivitas',
+                          value:
+                              'Pelacakan audit sistem infrastruktur operasional',
+                          icon: Icons.history_rounded,
+                          backgroundColor: AppColors.secondary,
+                          iconColor: AppColors.onSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/admin-dashboard'),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusDefault,
+                        ),
+                        child: const StatCard(
+                          label: 'Statistik Admin',
+                          value:
+                              'Metrik agregasi menyeluruh dan visualisasi performa',
+                          icon: Icons.dashboard_rounded,
+                          backgroundColor: AppColors.primary,
+                          iconColor: AppColors.onPrimary,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
+            ],
 
-            // Recent Tickets Section Header
+            // ── RECENT TICKETS ACTIVITY FEEDS ────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Tiket Terbaru',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/ticket-list');
-                      },
-                      child: Text(
-                        'Lihat Semua',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.containerPadding,
+                  32,
+                  AppTheme.containerPadding,
+                  16,
+                ), //
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: AppColors.outlineVariant,
+                        width: 1,
+                      ),
+                    ), //
+                  ),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Tiket Terbaru',
+                        style: Theme.of(context).textTheme.headlineSmall, //
+                      ),
+                      GestureDetector(
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/ticket-list'),
+                        child: Text(
+                          'Lihat Semua',
+                          style: Theme.of(context).textTheme.labelMedium, //
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
 
-            // Recent Tickets List
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.containerPadding,
+                0,
+                AppTheme.containerPadding,
+                120,
+              ), //
               sliver: recentTickets.isEmpty
                   ? SliverToBoxAdapter(
                       child: Padding(
@@ -454,17 +554,17 @@ class _DashboardPageState extends State<DashboardPage>
                         child: Center(
                           child: Column(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.inbox_rounded,
                                 size: 48,
                                 color: AppColors.outline,
-                              ),
+                              ), //
                               const SizedBox(height: 12),
                               Text(
-                                'Belum ada tiket',
-                                style: AppTheme().bodyMedium.copyWith(
-                                  color: AppColors.onSurfaceVariant,
-                                ),
+                                'Belum ada tiket masuk',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium, //
                               ),
                             ],
                           ),
@@ -472,24 +572,20 @@ class _DashboardPageState extends State<DashboardPage>
                       ),
                     )
                   : SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final ticket = recentTickets[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _RecentTicketCard(
-                              ticket: ticket,
-                              onTap: () {
-                                Navigator.of(context).pushNamed(
-                                  '/ticket-detail',
-                                  arguments: ticket,
-                                );
-                              },
-                            ),
-                          );
-                        },
-                        childCount: recentTickets.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final ticket = recentTickets[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _RecentTicketCard(
+                            ticket: ticket,
+                            onTap: () {
+                              Navigator.of(
+                                context,
+                              ).pushNamed('/ticket-detail', arguments: ticket);
+                            },
+                          ),
+                        );
+                      }, childCount: recentTickets.length),
                     ),
             ),
           ],
@@ -509,136 +605,6 @@ class _DashboardPageState extends State<DashboardPage>
       default:
         return 'GUEST';
     }
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final Color accentColor;
-  final IconData icon;
-  final String label;
-  final int count;
-
-  const _StatCard({
-    required this.accentColor,
-    required this.icon,
-    required this.label,
-    required this.count,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.outlineVariant.withOpacity(0.5),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  size: 16,
-                  color: accentColor,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '$count',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: accentColor,
-                  height: 1.0,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-              height: 1.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color accentColor;
-  final VoidCallback onTap;
-
-  const _QuickActionCard({
-    required this.icon,
-    required this.label,
-    required this.accentColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.outlineVariant.withOpacity(0.5),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                icon,
-                size: 18,
-                color: accentColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.onSurface,
-                fontWeight: FontWeight.w600,
-                height: 1.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -667,154 +633,121 @@ class _RecentTicketCard extends StatelessWidget {
 
   String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
-    if (diff.inHours < 24) return '${diff.inHours} jam lalu';
-    return '${diff.inDays} hari lalu';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m lalu';
+    if (diff.inHours < 24) return '${diff.inHours}j lalu';
+    return '${diff.inDays}d lalu';
   }
 
   @override
   Widget build(BuildContext context) {
-    return StyledCard(
+    return GlassCard(
       onTap: onTap,
-      glowColor: AppColors.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row - Status and Time
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              StatusBadge(
-                text: _ticketStatus(ticket.status).name.toUpperCase(),
-                status: _ticketStatus(ticket.status),
-              ),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.access_time_rounded,
-                    size: 12,
-                    color: AppColors.outline,
-                  ),
-                  const SizedBox(width: 4),
                   Text(
-                    _timeAgo(ticket.createdAt),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.outline,
+                    'TKT-${ticket.ticketNumber}',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      //
+                      color: AppColors.primary, //
                     ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    ticket.title,
+                    style: Theme.of(context).textTheme.titleLarge, //
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
+              StatusBadge(
+                text: _ticketStatus(ticket.status).name,
+                status: _ticketStatus(ticket.status),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          // Title
+          const SizedBox(height: 12),
           Text(
-            ticket.title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              height: 1.3,
-            ),
+            ticket.description ??
+                'Tidak ada ringkasan deskripsi masalah yang diberikan.',
+            style: Theme.of(context).textTheme.bodyMedium, //
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
-          // Bottom row - Ticket number and stats
-          Container(
-            padding: const EdgeInsets.only(top: 12),
-            decoration: const BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: AppColors.outlineVariant,
-                  width: 1,
-                ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerHigh, //
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: Center(
+                      child: Text(
+                        ticket.assigneeAvatar ?? '?',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          //
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (ticket.commentsCount > 0) ...[
+                    const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 14,
+                      color: AppColors.outline,
+                    ), //
+                    const SizedBox(width: 4),
+                    Text(
+                      '${ticket.commentsCount}',
+                      style: Theme.of(context).textTheme.labelSmall, //
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  if (ticket.attachmentsCount > 0) ...[
+                    const Icon(
+                      Icons.attach_file_rounded,
+                      size: 14,
+                      color: AppColors.outline,
+                    ), //
+                    const SizedBox(width: 4),
+                    Text(
+                      '${ticket.attachmentsCount}',
+                      style: Theme.of(context).textTheme.labelSmall, //
+                    ),
+                  ],
+                ],
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Left side - Agent info or ticket number
-                Row(
-                  children: [
-                    if (ticket.assigneeName != null) ...[
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            ticket.assigneeAvatar ?? '?',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.onPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '#${ticket.ticketNumber}',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.outline,
-                        ),
-                      ),
-                    ] else ...[
-                      Text(
-                        '#${ticket.ticketNumber}',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.outline,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                // Right side - Comments and Attachments
-                Row(
-                  children: [
-                    if (ticket.commentsCount > 0) ...[
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            size: 12,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${ticket.commentsCount}',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                    if (ticket.attachmentsCount > 0) ...[
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.attach_file_rounded,
-                            size: 12,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${ticket.attachmentsCount}',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.schedule_rounded,
+                    size: 14,
+                    color: AppColors.onSurfaceVariant,
+                  ), //
+                  const SizedBox(width: 4),
+                  Text(
+                    _timeAgo(ticket.createdAt),
+                    style: Theme.of(context).textTheme.labelSmall, //
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

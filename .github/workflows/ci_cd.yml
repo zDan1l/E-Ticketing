@@ -1,113 +1,113 @@
-name: Flutter CI/CD
+# name: Flutter CI/CD
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main, develop ]
 
-jobs:
-  get_dependencies:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   get_dependencies:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44.0'
-          channel: 'stable'
-          cache: true
+#       - name: Setup Flutter
+#         uses: subosito/flutter-action@v2
+#         with:
+#           flutter-version: '3.44.0'
+#           channel: 'stable'
+#           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+#       - name: Install dependencies
+#         run: flutter pub get
 
-  code_quality:
-    runs-on: ubuntu-latest
-    needs: get_dependencies
-    steps:
-      - uses: actions/checkout@v4
+#   code_quality:
+#     runs-on: ubuntu-latest
+#     needs: get_dependencies
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44.0'
-          channel: 'stable'
-          cache: true
+#       - name: Setup Flutter
+#         uses: subosito/flutter-action@v2
+#         with:
+#           flutter-version: '3.44.0'
+#           channel: 'stable'
+#           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+#       - name: Install dependencies
+#         run: flutter pub get
 
-      - name: Analyze code
-        run: flutter analyze
+#       - name: Analyze code
+#         run: flutter analyze
 
-  unit_test:
-    runs-on: ubuntu-latest
-    needs: get_dependencies
-    steps:
-      - uses: actions/checkout@v4
+#   unit_test:
+#     runs-on: ubuntu-latest
+#     needs: get_dependencies
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44.0'
-          channel: 'stable'
-          cache: true
+#       - name: Setup Flutter
+#         uses: subosito/flutter-action@v2
+#         with:
+#           flutter-version: '3.44.0'
+#           channel: 'stable'
+#           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+#       - name: Install dependencies
+#         run: flutter pub get
 
-      - name: Run tests
-        run: flutter test
+#       - name: Run tests
+#         run: flutter test
 
-  build_apk:
-    runs-on: ubuntu-latest
-    needs: [code_quality, unit_test]
-    steps:
-      - uses: actions/checkout@v4
+#   build_apk:
+#     runs-on: ubuntu-latest
+#     needs: [code_quality, unit_test]
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44.0'
-          channel: 'stable'
-          cache: true
+#       - name: Setup Flutter
+#         uses: subosito/flutter-action@v2
+#         with:
+#           flutter-version: '3.44.0'
+#           channel: 'stable'
+#           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+#       - name: Install dependencies
+#         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release
+#       - name: Build APK
+#         run: flutter build apk --release
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 7
+#       - name: Upload APK
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: app-release-apk
+#           path: build/app/outputs/flutter-apk/app-release.apk
+#           retention-days: 7
 
-  build_web:
-    runs-on: ubuntu-latest
-    needs: [code_quality, unit_test]
-    steps:
-      - uses: actions/checkout@v4
+#   build_web:
+#     runs-on: ubuntu-latest
+#     needs: [code_quality, unit_test]
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44.0'
-          channel: 'stable'
-          cache: true
+#       - name: Setup Flutter
+#         uses: subosito/flutter-action@v2
+#         with:
+#           flutter-version: '3.44.0'
+#           channel: 'stable'
+#           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+#       - name: Install dependencies
+#         run: flutter pub get
 
-      - name: Build Web
-        run: flutter build web
+#       - name: Build Web
+#         run: flutter build web
 
-      - name: Upload Web Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: build/web
-          retention-days: 7
+#       - name: Upload Web Build
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: web-build
+#           path: build/web
+#           retention-days: 7

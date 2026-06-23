@@ -33,6 +33,7 @@ class GlassCard extends StatelessWidget {
       height: height,
       padding: padding ?? const EdgeInsets.all(20),
       margin: margin,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: effectiveBorderRadius,
         border:
@@ -93,6 +94,7 @@ class StyledCard extends StatelessWidget {
       height: height,
       margin: margin ?? const EdgeInsets.only(bottom: 16),
       padding: padding ?? const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -149,6 +151,8 @@ class BentoCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
+      // Enforces clean flat clipping onto your 16px border radius scale
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: effectiveBgColor,
         borderRadius: BorderRadius.circular(16),
