@@ -6,7 +6,21 @@
       "mcp__plugin_figma_figma__get_screenshot",
       "mcp__plugin_figma_figma__use_figma",
       "Skill(frontend-design:frontend-design)",
-      "Bash(flutter test *)"
+      "Bash(flutter test *)",
+      "Bash(flutter pub *)",
+      "mcp__plugin_claude-mem_mcp-search__search",
+      "Bash(flutter doctor *)",
+      "Bash(flutter devices *)",
+      "Bash(curl -s -H \"Content-Type: application/json\" http://localhost:3000/api/tickets)",
+      "Bash(curl *)",
+      "Bash(dir /b)",
+      "Bash(flutter run *)",
+      "Bash(start ms-settings:developers *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter build *)",
+      "Bash(flutter *)",
+      "Bash(dart *)",
+      "Bash(git checkout *)"
     ]
   }
 }

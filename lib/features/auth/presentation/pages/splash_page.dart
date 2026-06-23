@@ -1,6 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../services/auth_service.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SplashPage
+//
+// Changes from original:
+//   • Removed gradient background (AppColors.primaryGradient deleted).
+//     Background is now solid AppColors.primary.
+//   • Removed Colors.white.withOpacity(0.85) — subtitle now uses
+//     AppColors.onPrimaryContainer (a solid warm lavender that reads well
+//     on the primary bg and carries the same "softer white" intent).
+//   • Removed AppColors.white.withValues(alpha: 0.7) on the progress
+//     indicator — replaced with AppColors.onPrimaryContainer solid.
+// ─────────────────────────────────────────────────────────────────────────────
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -16,6 +29,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late Animation<double> _logoOpacity;
   late Animation<double> _textOpacity;
   late Animation<Offset> _textSlide;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -56,7 +70,11 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        if (_authService.isAuthenticated) {
+          Navigator.of(context).pushReplacementNamed('/main');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
       }
     });
   }
@@ -74,9 +92,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-        ),
+        // Solid primary fill — no gradient
+        color: AppColors.primary,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -93,17 +110,11 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        // Solid white container — no shadow
+                        color: AppColors.surfaceContainerLowest,
                         borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.confirmation_number_rounded,
                         size: 50,
                         color: AppColors.primary,
@@ -114,7 +125,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
               },
             ),
             const SizedBox(height: 28),
-            // App Name
+            // App name + tagline
             SlideTransition(
               position: _textSlide,
               child: FadeTransition(
@@ -123,20 +134,17 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                   children: [
                     Text(
                       'HelpDesk',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.white,
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                        color: AppColors.surfaceContainerLowest,
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'E-Ticketing System',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.white.withValues(alpha: 0.85),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        // Solid onPrimaryContainer (warm lavender) — no opacity
+                        color: AppColors.onPrimaryContainer,
                         letterSpacing: 2,
                       ),
                     ),
@@ -153,7 +161,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: AppColors.white.withValues(alpha: 0.7),
+                  // Solid onPrimaryContainer — no opacity blend
+                  color: AppColors.onPrimaryContainer,
                 ),
               ),
             ),

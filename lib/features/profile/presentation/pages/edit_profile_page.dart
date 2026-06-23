@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/dummy_data.dart';
+import '../../../../services/auth_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -15,12 +15,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   bool _isLoading = false;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: DummyData.currentUserName);
-    _emailController = TextEditingController(text: DummyData.currentUserEmail);
+    _nameController = TextEditingController(text: _authService.currentUser?.name ?? '');
+    _emailController = TextEditingController(text: _authService.currentUser?.email ?? '');
   }
 
   @override
@@ -38,18 +39,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
           setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Profil berhasil diperbarui',
-                style: GoogleFonts.plusJakartaSans(),
-              ),
-              backgroundColor: AppColors.success,
+              content: Text('Profil berhasil diperbarui'),
+              backgroundColor: AppColors.successAccent,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
             ),
           );
-          Navigator.pop(context);
+          Navigator.of(context).pop();
         }
       });
     }
@@ -58,19 +53,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        backgroundColor: Colors.white,
+        leading: ClayIconButton(
+          icon: Icons.arrow_back_ios_new_rounded,
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Edit Profil',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         centerTitle: true,
         actions: [
@@ -87,10 +79,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   )
                 : Text(
                     'Simpan',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
           ),
@@ -103,7 +94,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             // Avatar section
             Container(
               width: double.infinity,
-              color: AppColors.white,
+              color: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 28),
               child: Column(
                 children: [
@@ -113,19 +104,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         width: 90,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
+                          color: AppColors.primary.withOpacity(0.1),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.3),
+                            color: AppColors.primary.withOpacity(0.3),
                             width: 3,
                           ),
                         ),
                         child: Center(
                           child: Text(
-                            DummyData.currentUserAvatar,
-                            style: GoogleFonts.plusJakartaSans(
+                            _authService.currentUser?.avatar ?? 'U',
+                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
                               fontSize: 32,
-                              fontWeight: FontWeight.w800,
                               color: AppColors.primary,
                             ),
                           ),
@@ -145,13 +135,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               color: AppColors.primary,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.white,
+                                color: Colors.white,
                                 width: 2,
                               ),
                             ),
                             child: const Icon(
                               Icons.camera_alt_rounded,
-                              color: AppColors.white,
+                              color: Colors.white,
                               size: 16,
                             ),
                           ),
@@ -162,10 +152,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   const SizedBox(height: 12),
                   Text(
                     'Ubah Foto',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -175,7 +164,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             // Form
             Container(
               width: double.infinity,
-              color: AppColors.white,
+              color: Colors.white,
               padding: const EdgeInsets.all(20),
               child: Form(
                 key: _formKey,
@@ -184,27 +173,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   children: [
                     Text(
                       'Informasi Pribadi',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 20),
                     // Name
-                    _buildLabel('Nama Lengkap'),
-                    const SizedBox(height: 8),
-                    TextFormField(
+                    StyledInput(
+                      label: 'Nama Lengkap',
+                      hint: 'Masukkan nama lengkap',
                       controller: _nameController,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        color: AppColors.textPrimary,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Masukkan nama lengkap',
-                        prefixIcon: Icon(Icons.person_outline_rounded,
-                            color: AppColors.textTertiary, size: 20),
-                      ),
+                      prefixIcon: Icons.person_outline_rounded,
                       validator: (v) {
                         if (v == null || v.isEmpty) {
                           return 'Nama tidak boleh kosong';
@@ -215,66 +192,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     const SizedBox(height: 20),
                     // Email (read only)
-                    _buildLabel('Email'),
-                    const SizedBox(height: 8),
-                    TextFormField(
+                    StyledInput(
+                      label: 'Email',
+                      hint: 'Email',
                       controller: _emailController,
                       readOnly: true,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        color: AppColors.textTertiary,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                        prefixIcon: const Icon(Icons.email_outlined,
-                            color: AppColors.textTertiary, size: 20),
-                        filled: true,
-                        fillColor: AppColors.divider,
-                        suffixIcon: Tooltip(
-                          message: 'Email tidak dapat diubah',
-                          child: Icon(
-                            Icons.lock_outline_rounded,
-                            color: AppColors.textTertiary,
-                            size: 18,
-                          ),
-                        ),
-                      ),
+                      prefixIcon: Icons.email_outlined,
+                      backgroundColor: AppColors.surfaceContainerHighest,
+                      suffixIcon: Icons.lock_outline_rounded,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Email tidak dapat diubah.',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: AppColors.textTertiary,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 20),
                     // Role (read only)
-                    _buildLabel('Role'),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.divider,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.badge_outlined,
-                              color: AppColors.textTertiary, size: 20),
-                          const SizedBox(width: 12),
-                          Text(
-                            'User (Pelapor)',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: AppColors.textTertiary,
-                            ),
-                          ),
-                        ],
-                      ),
+                    StyledInput(
+                      label: 'Role',
+                      hint: 'User (Pelapor)',
+                      controller: TextEditingController(text: 'User (Pelapor)'),
+                      readOnly: true,
+                      prefixIcon: Icons.badge_outlined,
+                      backgroundColor: AppColors.surfaceContainerHighest,
                     ),
                   ],
                 ),
@@ -286,22 +228,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.plusJakartaSans(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-
   void _showAvatarOptions() {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(20),
@@ -312,18 +243,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: AppColors.outlineVariant,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 20),
             Text(
               'Ubah Foto Profil',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
+              style: Theme.of(ctx).textTheme.titleLarge,
             ),
             const SizedBox(height: 20),
             _AvatarOption(
@@ -334,11 +261,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Kamera dibuka...',
-                        style: GoogleFonts.plusJakartaSans()),
+                    content: Text('Kamera dibuka...'),
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
                   ),
                 );
               },
@@ -347,16 +271,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
             _AvatarOption(
               icon: Icons.photo_library_rounded,
               label: 'Pilih dari Galeri',
-              color: AppColors.success,
+              color: AppColors.successAccent,
               onTap: () {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Galeri dibuka...',
-                        style: GoogleFonts.plusJakartaSans()),
+                    content: Text('Galeri dibuka...'),
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
                   ),
                 );
               },
@@ -393,11 +314,11 @@ class _AvatarOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
@@ -405,23 +326,21 @@ class _AvatarOption extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 14),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
               ),
             ),
             const Spacer(),
             Icon(Icons.chevron_right_rounded,
-                color: AppColors.textTertiary, size: 20),
+                color: AppColors.onSurfaceVariant, size: 20),
           ],
         ),
       ),

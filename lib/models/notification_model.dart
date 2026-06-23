@@ -18,4 +18,17 @@ class NotificationModel {
     this.ticketNumber,
     required this.createdAt,
   });
+
+  factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    return NotificationModel(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      title: json['title'] as String,
+      body: json['body'] as String,
+      isRead: json['is_read'] as bool? ?? false,
+      ticketId: json['ticket_id']?.toString(),
+      ticketNumber: json['ticket_number'] as String?,
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
 }

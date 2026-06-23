@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/dummy_data.dart';
 import '../../../../models/ticket_model.dart';
+import '../../../../services/auth_service.dart';
+import '../../../../services/ticket_service.dart';
+import '../../../../shared/components/components.dart';
 
 class TicketListPage extends StatefulWidget {
   const TicketListPage({super.key});
@@ -13,6 +15,10 @@ class TicketListPage extends StatefulWidget {
 
 class _TicketListPageState extends State<TicketListPage> {
   String _selectedFilter = 'all';
+  String _selectedCategory = 'all';
+  String _selectedPriority = 'all';
+  String _searchQuery = '';
+
   final List<Map<String, dynamic>> _filters = [
     {'key': 'all', 'label': 'Semua'},
     {'key': 'open', 'label': 'Open'},
@@ -21,11 +27,200 @@ class _TicketListPageState extends State<TicketListPage> {
     {'key': 'closed', 'label': 'Closed'},
   ];
 
+  final List<Map<String, dynamic>> _categories = [
+    {'key': 'all', 'label': 'Semua Kategori'},
+    {'key': 'hardware', 'label': 'Hardware'},
+    {'key': 'software', 'label': 'Software'},
+    {'key': 'network', 'label': 'Network'},
+    {'key': 'other', 'label': 'Lainnya'},
+  ];
+
+  final List<Map<String, dynamic>> _priorities = [
+    {'key': 'all', 'label': 'Semua Priority'},
+    {'key': 'low', 'label': 'Low'},
+    {'key': 'medium', 'label': 'Medium'},
+    {'key': 'high', 'label': 'High'},
+    {'key': 'critical', 'label': 'Critical'},
+  ];
+
+  final TicketService _ticketService = TicketService();
+  final AuthService _authService = AuthService();
+  final TextEditingController _searchController = TextEditingController();
+
+  bool _isLoading = true;
+  List<TicketModel> _allTickets = [];
+  Map<String, dynamic>? _pagination;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTickets();
+
+    // Check if there's a search query from navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null && args['searchQuery'] != null) {
+        setState(() {
+          _searchQuery = args['searchQuery'] as String;
+          _searchController.text = _searchQuery;
+        });
+        _loadTickets();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadTickets() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _ticketService.getTickets(
+        userRole: _authService.currentUserRole,
+        searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
+        status: _selectedFilter != 'all' ? _selectedFilter : null,
+        category: _selectedCategory != 'all' ? _selectedCategory : null,
+        priority: _selectedPriority != 'all' ? _selectedPriority : null,
+      );
+
+      if (mounted) {
+        setState(() {
+          _allTickets = response['tickets'] as List<TicketModel>? ?? [];
+          _pagination = response['pagination'] as Map<String, dynamic>?;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Gagal memuat tiket: ${e.toString()}';
+          _isLoading = false;
+          _allTickets = [];
+        });
+      }
+    }
+  }
+
   List<TicketModel> get _filteredTickets {
-    if (_selectedFilter == 'all') return DummyData.tickets;
-    return DummyData.tickets
-        .where((t) => t.status == _selectedFilter)
-        .toList();
+    var tickets = _allTickets;
+
+    // Apply status filter
+    if (_selectedFilter != 'all') {
+      tickets = tickets.where((t) => t.status == _selectedFilter).toList();
+    }
+
+    // Apply category filter
+    if (_selectedCategory != 'all') {
+      tickets = tickets.where((t) => t.category == _selectedCategory).toList();
+    }
+
+    // Apply priority filter
+    if (_selectedPriority != 'all') {
+      tickets = tickets.where((t) => t.priority == _selectedPriority).toList();
+    }
+
+    return tickets;
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Filter Tiket',
+          style: AppTheme().headlineSmall,
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Category filter
+              Text(
+                'Kategori',
+                style: AppTheme().labelCaps.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _categories.map((cat) {
+                  final isSelected = _selectedCategory == cat['key'];
+                  return ChipBadge(
+                    label: cat['label'],
+                    isSelected: isSelected,
+                    onTap: () {
+                      setState(() => _selectedCategory = cat['key']);
+                      Navigator.pop(context);
+                      _loadTickets();
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              // Priority filter
+              Text(
+                'Priority',
+                style: AppTheme().labelCaps.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _priorities.map((pri) {
+                  final isSelected = _selectedPriority == pri['key'];
+                  return ChipBadge(
+                    label: pri['label'],
+                    isSelected: isSelected,
+                    onTap: () {
+                      setState(() => _selectedPriority = pri['key']);
+                      Navigator.pop(context);
+                      _loadTickets();
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              // Reset button
+              Center(
+                child: ClayButton(
+                  text: 'Reset Filter',
+                  icon: Icons.refresh,
+                  isGhost: true,
+                  onPressed: () {
+                    setState(() {
+                      _selectedCategory = 'all';
+                      _selectedPriority = 'all';
+                    });
+                    Navigator.pop(context);
+                    _loadTickets();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          ClayButton(
+            text: 'Tutup',
+            isGhost: true,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -37,145 +232,165 @@ class _TicketListPageState extends State<TicketListPage> {
       appBar: AppBar(
         title: Text(
           'Tiket Saya',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.w700,
-          ),
+          style: AppTheme().headlineSmall,
         ),
         centerTitle: false,
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search_rounded, size: 22),
+            onPressed: _showFilterDialog,
+            icon: const Icon(Icons.filter_list_rounded, size: 22),
+            tooltip: 'Filter',
           ),
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list_rounded, size: 22),
+            onPressed: _loadTickets,
+            icon: const Icon(Icons.refresh_rounded, size: 22),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Filter chips
-          Container(
-            color: AppColors.white,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-              child: Row(
-                children: _filters.map((filter) {
-                  final isSelected = _selectedFilter == filter['key'];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _selectedFilter = filter['key']);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOut,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 10),
-                        decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? AppColors.primaryGradient
-                              : null,
-                          color: isSelected
-                              ? null
-                              : AppColors.background,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.transparent
-                                : AppColors.border,
-                            width: 1.5,
-                          ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Text(
-                          filter['label'],
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                            color: isSelected
-                                ? AppColors.white
-                                : AppColors.textSecondary,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            )
+          : Column(
+              children: [
+                // Search bar with StyledInput
+                Container(
+                  color: AppColors.white,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: StyledInput(
+                    hint: 'Cari tiket...',
+                    controller: _searchController,
+                    prefixIcon: Icons.search_rounded,
+                    onSubmitted: (query) {
+                      setState(() => _searchQuery = query);
+                      _loadTickets();
+                    },
+                    onChanged: (value) {
+                      setState(() {}); // Update UI for clear button
+                    },
+                    suffixIcon: _searchController.text.isNotEmpty ? Icons.clear : null,
+                    onSuffixIconPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _searchQuery = '';
+                      });
+                      _loadTickets();
+                    },
+                  ),
+                ),
+                if (_errorMessage != null)
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3),
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          // Ticket count
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Row(
-              children: [
-                Text(
-                  '${tickets.length} tiket ditemukan',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: AppTheme().bodyMedium.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                // Filter chips with ChipBadge
+                Container(
+                  color: AppColors.white,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+                    child: Row(
+                      children: _filters.map((filter) {
+                        final isSelected = _selectedFilter == filter['key'];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: ChipBadge(
+                            label: filter['label'],
+                            isSelected: isSelected,
+                            onTap: () {
+                              setState(() {
+                                _selectedFilter = filter['key'];
+                              });
+                              _loadTickets();
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
-                const Spacer(),
-                Icon(Icons.sort_rounded,
-                    size: 18, color: AppColors.textSecondary),
-                const SizedBox(width: 4),
-                Text(
-                  'Terbaru',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                // Ticket count
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${tickets.length} tiket ditemukan',
+                        style: AppTheme().bodyMedium.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(Icons.sort_rounded,
+                          size: 18, color: AppColors.onSurfaceVariant),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Terbaru',
+                        style: AppTheme().bodyMedium.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          // Tickets list
-          Expanded(
-            child: tickets.isEmpty
-                ? _EmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-                    itemCount: tickets.length,
-                    itemBuilder: (context, index) {
-                      final ticket = tickets[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _TicketCard(
-                          ticket: ticket,
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              '/ticket-detail',
-                              arguments: ticket,
+                // Tickets list
+                Expanded(
+                  child: tickets.isEmpty
+                      ? _EmptyState(onRefresh: _loadTickets)
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                          itemCount: tickets.length,
+                          itemBuilder: (context, index) {
+                            final ticket = tickets[index];
+                            return _TicketCard(
+                              ticket: ticket,
+                              onTap: () async {
+                                await Navigator.of(context).pushNamed(
+                                  '/ticket-detail',
+                                  arguments: ticket,
+                                );
+                                // Refresh ticket list when returning from detail page
+                                // to show any status updates
+                                _loadTickets();
+                              },
                             );
                           },
                         ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+                ),
+              ],
+            ),
     );
   }
 }
 
 class _EmptyState extends StatelessWidget {
+  final VoidCallback onRefresh;
+
+  const _EmptyState({required this.onRefresh});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -188,14 +403,7 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.primarySurface,
-                    AppColors.primary.withValues(alpha: 0.05),
-                  ],
-                ),
+                color: AppColors.primaryContainer.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.1),
@@ -211,58 +419,24 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Tidak ada tiket',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+              style: AppTheme().headlineSmall.copyWith(
                 letterSpacing: -0.3,
               ),
             ),
             const SizedBox(height: 10),
             Text(
               'Tiket dengan filter ini belum tersedia',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+              style: AppTheme().bodyMedium.copyWith(
+                color: AppColors.onSurfaceVariant,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: AppColors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Buat Tiket Baru',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
+            ClayButton(
+              text: 'Refresh',
+              icon: Icons.refresh,
+              onPressed: onRefresh,
             ),
           ],
         ),
@@ -277,20 +451,35 @@ class _TicketCard extends StatelessWidget {
 
   const _TicketCard({required this.ticket, required this.onTap});
 
-  Color _statusColor(String status) {
+  TicketStatus _ticketStatus(String status) {
     switch (status) {
       case 'open':
-        return AppColors.statusOpen;
+        return TicketStatus.open;
       case 'in_progress':
-        return AppColors.statusInProgress;
+        return TicketStatus.inProgress;
       case 'resolved':
-        return AppColors.statusResolved;
+        return TicketStatus.resolved;
       case 'closed':
-        return AppColors.statusClosed;
+        return TicketStatus.closed;
       case 'reopened':
-        return AppColors.statusReopened;
+        return TicketStatus.reopened;
       default:
-        return AppColors.textTertiary;
+        return TicketStatus.open;
+    }
+  }
+
+  PriorityLevel _priorityLevel(String priority) {
+    switch (priority) {
+      case 'low':
+        return PriorityLevel.low;
+      case 'medium':
+        return PriorityLevel.medium;
+      case 'high':
+        return PriorityLevel.high;
+      case 'critical':
+        return PriorityLevel.critical;
+      default:
+        return PriorityLevel.low;
     }
   }
 
@@ -308,21 +497,6 @@ class _TicketCard extends StatelessWidget {
         return 'Reopened';
       default:
         return status;
-    }
-  }
-
-  Color _priorityColor(String priority) {
-    switch (priority) {
-      case 'low':
-        return AppColors.priorityLow;
-      case 'medium':
-        return AppColors.priorityMedium;
-      case 'high':
-        return AppColors.priorityHigh;
-      case 'critical':
-        return AppColors.priorityCritical;
-      default:
-        return AppColors.textTertiary;
     }
   }
 
@@ -350,170 +524,109 @@ class _TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sColor = _statusColor(ticket.status);
-
-    return GestureDetector(
+    return StyledCard(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              // Priority dot + ticket number
+              PriorityBadge(
+                text: ticket.priority.toUpperCase(),
+                priority: _priorityLevel(ticket.priority),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                ticket.ticketNumber,
+                style: AppTheme().labelSmall.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const Spacer(),
+              StatusBadge(
+                text: _statusLabel(ticket.status),
+                status: _ticketStatus(ticket.status),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Title
+          Text(
+            ticket.title,
+            style: AppTheme().bodyLarge.copyWith(
+              color: AppColors.onSurface,
+              height: 1.3,
+              letterSpacing: -0.2,
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                // Priority dot + ticket number
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 10),
+          // Category
+          Text(
+            _categoryLabel(ticket.category),
+            style: AppTheme().bodyMedium.copyWith(
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Divider
+          Container(
+            height: 1,
+            decoration: const BoxDecoration(
+              color: AppColors.outlineVariant,
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Footer
+          Row(
+            children: [
+              // Comments
+              _IconCount(
+                icon: Icons.chat_bubble_outline_rounded,
+                count: ticket.commentsCount,
+              ),
+              const SizedBox(width: 12),
+              // Attachments
+              _IconCount(
+                icon: Icons.attach_file_rounded,
+                count: ticket.attachmentsCount,
+              ),
+              const Spacer(),
+              // Assignee
+              if (ticket.assigneeName != null) ...[
                 Container(
-                  width: 10,
-                  height: 10,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
-                    color: _priorityColor(ticket.priority),
+                    color: AppColors.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: _priorityColor(ticket.priority).withValues(alpha: 0.4),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                  ),
+                  child: Center(
+                    child: Text(
+                      ticket.assigneeAvatar ?? '',
+                      style: AppTheme().labelSmall.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  ticket.ticketNumber,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textTertiary,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: sColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    _statusLabel(ticket.status),
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: sColor,
-                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
               ],
-            ),
-            const SizedBox(height: 14),
-            // Title
-            Text(
-              ticket.title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-                height: 1.3,
-                letterSpacing: -0.2,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 10),
-            // Category
-            Text(
-              _categoryLabel(ticket.category),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Divider
-            Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.divider,
-                    AppColors.divider.withValues(alpha: 0.5),
-                    AppColors.divider,
-                  ],
+              Text(
+                _timeAgo(ticket.createdAt),
+                style: AppTheme().labelSmall.copyWith(
+                  color: AppColors.onSurfaceVariant,
                 ),
               ),
-            ),
-            const SizedBox(height: 14),
-            // Footer
-            Row(
-              children: [
-                // Comments
-                _IconCount(
-                  icon: Icons.chat_bubble_outline_rounded,
-                  count: ticket.commentsCount,
-                ),
-                const SizedBox(width: 12),
-                // Attachments
-                _IconCount(
-                  icon: Icons.attach_file_rounded,
-                  count: ticket.attachmentsCount,
-                ),
-                const Spacer(),
-                // Assignee
-                if (ticket.assigneeName != null) ...[
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primary.withValues(alpha: 0.15),
-                          AppColors.primary.withValues(alpha: 0.08),
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        ticket.assigneeAvatar ?? '',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  _timeAgo(ticket.createdAt),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -529,7 +642,7 @@ class _IconCount extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color color = icon == Icons.chat_bubble_outline_rounded
         ? AppColors.primary
-        : AppColors.info;
+        : AppColors.tertiary;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -543,9 +656,7 @@ class _IconCount extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             '$count',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+            style: AppTheme().labelSmall.copyWith(
               color: color,
             ),
           ),

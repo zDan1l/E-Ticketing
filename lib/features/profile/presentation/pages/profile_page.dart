@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/dummy_data.dart';
 import '../../../../main.dart';
+import '../../../../models/role_model.dart';
+import '../../../../services/auth_service.dart';
+import '../../../../services/ticket_service.dart';
+import '../../../../shared/components/components.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,26 +15,113 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final AuthService _authService = AuthService();
+  final TicketService _ticketService = TicketService();
+
+  Map<String, int>? _ticketStats;
+  int _totalTickets = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService.initialize();
+    _loadTicketStats();
+  }
+
+  Future<void> _loadTicketStats() async {
+    try {
+      final stats = await _ticketService.getTicketStats(
+        userRole: _authService.currentUserRole,
+      );
+
+      if (mounted) {
+        setState(() {
+          _ticketStats = stats;
+          _totalTickets = (stats['open'] ?? 0) +
+              (stats['in_progress'] ?? 0) +
+              (stats['resolved'] ?? 0) +
+              (stats['closed'] ?? 0);
+        });
+      }
+    } catch (e) {
+      // Keep defaults on error
+    }
+  }
+
+  void _showRoleSwitcher() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Switch Role (Development)',
+          style: AppTheme().headlineSmall,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: UserRole.values.map((role) {
+            final isSelected = _authService.currentUser?.role == role;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: ListTile(
+                title: Text(
+                  role.label,
+                  style: AppTheme().bodyLarge.copyWith(
+                    color: AppColors.onSurface,
+                  ),
+                ),
+                leading: Icon(
+                  isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                  color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+                  size: 24,
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Role switching disabled in API mode'),
+                      backgroundColor: AppColors.onSurface,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            );
+          }).toList(),
+        ),
+        actions: [
+          ClayButton(
+            text: 'Close',
+            isGhost: true,
+            onPressed: () => Navigator.pop(ctx),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF9FAFB),
       body: CustomScrollView(
         slivers: [
           // Header
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
                 ),
               ),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                   child: Column(
                     children: [
                       // Top row
@@ -39,16 +129,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         children: [
                           Text(
                             'Profil',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.white,
+                            style: AppTheme().headlineMedium.copyWith(
+                              color: AppColors.onPrimary,
                             ),
                           ),
                           const Spacer(),
                           Container(
-                            width: 38,
-                            height: 38,
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
                               color: AppColors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
@@ -61,61 +149,52 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
                       // Avatar
                       Container(
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: 0.2),
+                          color: AppColors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.white.withValues(alpha: 0.5),
-                            width: 3,
-                          ),
                         ),
                         child: Center(
                           child: Text(
-                            DummyData.currentUserAvatar,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.white,
+                            _authService.currentUser?.avatar ?? '?',
+                            style: AppTheme().displayLarge.copyWith(
+                              fontSize: 32,
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 16),
                       Text(
-                        DummyData.currentUserName,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.white,
+                        _authService.currentUser?.name ?? 'Guest',
+                        style: AppTheme().headlineMedium.copyWith(
+                          color: AppColors.onPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        DummyData.currentUserEmail,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: AppColors.white.withValues(alpha: 0.8),
+                        _authService.currentUser?.email ?? '',
+                        style: AppTheme().bodyMedium.copyWith(
+                          color: AppColors.onPrimary.withValues(alpha: 0.8),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 5),
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          'User',
-                          style: GoogleFonts.plusJakartaSans(
+                          _authService.currentUser?.role.label ?? 'User',
+                          style: AppTheme().labelCaps.copyWith(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
@@ -125,34 +204,33 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          // Stats summary
+          // Stats summary with StyledCard
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-              child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              child: StyledCard(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
                 child: Row(
                   children: [
-                    _StatItem(
-                      label: 'Total Tiket',
-                      value: '${DummyData.totalTickets}',
+                    Expanded(
+                      child: _StatItem(
+                        label: 'Total Tiket',
+                        value: '$_totalTickets',
+                      ),
                     ),
                     _vDivider(),
-                    _StatItem(
-                      label: 'Aktif',
-                      value:
-                          '${DummyData.tickets.where((t) => t.status == 'open' || t.status == 'in_progress').length}',
+                    Expanded(
+                      child: _StatItem(
+                        label: 'Aktif',
+                        value: '${(_ticketStats?['open'] ?? 0) + (_ticketStats?['in_progress'] ?? 0)}',
+                      ),
                     ),
                     _vDivider(),
-                    _StatItem(
-                      label: 'Selesai',
-                      value:
-                          '${DummyData.tickets.where((t) => t.status == 'closed' || t.status == 'resolved').length}',
+                    Expanded(
+                      child: _StatItem(
+                        label: 'Selesai',
+                        value: '${(_ticketStats?['resolved'] ?? 0) + (_ticketStats?['closed'] ?? 0)}',
+                      ),
                     ),
                   ],
                 ),
@@ -162,25 +240,21 @@ class _ProfilePageState extends State<ProfilePage> {
           // Menu List
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Akun',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textTertiary,
-                      letterSpacing: 0.5,
+                    style: AppTheme().labelCaps.copyWith(
+                      color: AppColors.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _MenuCard(
                     items: [
                       _MenuItem(
                         icon: Icons.person_outline_rounded,
-                        iconColor: AppColors.primary,
                         title: 'Edit Profil',
                         subtitle: 'Ubah nama dan foto profil',
                         onTap: () {
@@ -189,7 +263,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       _MenuItem(
                         icon: Icons.lock_outline_rounded,
-                        iconColor: AppColors.warning,
                         title: 'Ganti Password',
                         subtitle: 'Perbarui kata sandi Anda',
                         onTap: () {
@@ -204,25 +277,21 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Pengaturan',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textTertiary,
-                      letterSpacing: 0.5,
+                    style: AppTheme().labelCaps.copyWith(
+                      color: AppColors.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _MenuCard(
                     items: [
                       _MenuItem(
                         icon: Icons.dark_mode_outlined,
-                        iconColor: AppColors.secondary,
                         title: 'Tema Gelap',
                         subtitle: 'Sesuaikan tampilan aplikasi',
                         trailing: Switch(
@@ -242,15 +311,64 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                       _MenuItem(
+                        icon: Icons.network_check_rounded,
+                        title: 'Test Koneksi API',
+                        subtitle: 'Verifikasi koneksi backend',
+                        onTap: () {
+                          Navigator.of(context).pushNamed('/connection-test');
+                        },
+                      ),
+                      // Admin menu - only show for admin users
+                      if (_authService.currentUser?.role == UserRole.admin)
+                        _MenuItem(
+                          icon: Icons.admin_panel_settings_rounded,
+                          title: 'Kelola Pengguna',
+                          subtitle: 'Kelola pengguna dan akses',
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/user-management');
+                          },
+                        ),
+                      if (_authService.currentUser?.role == UserRole.admin)
+                        _MenuItem(
+                          icon: Icons.people_outline_rounded,
+                          title: 'Daftar Helpdesk',
+                          subtitle: 'Lihat staff helpdesk',
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/helpdesk-list');
+                          },
+                        ),
+                      if (_authService.currentUser?.role == UserRole.admin)
+                        _MenuItem(
+                          icon: Icons.history_rounded,
+                          title: 'Aktivitas Sistem',
+                          subtitle: 'Lihat log aktivitas',
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/activity-logs');
+                          },
+                        ),
+                      if (_authService.currentUser?.role == UserRole.admin)
+                        _MenuItem(
+                          icon: Icons.dashboard_rounded,
+                          title: 'Statistik Admin',
+                          subtitle: 'Statistik sistem lengkap',
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/admin-dashboard');
+                          },
+                        ),
+                      _MenuItem(
+                        icon: Icons.swap_horiz_rounded,
+                        title: 'Switch Role',
+                        subtitle: 'Development & Testing',
+                        onTap: _showRoleSwitcher,
+                      ),
+                      _MenuItem(
                         icon: Icons.notifications_outlined,
-                        iconColor: AppColors.info,
                         title: 'Notifikasi',
                         subtitle: 'Atur preferensi notifikasi',
                         onTap: () {},
                       ),
                       _MenuItem(
                         icon: Icons.language_rounded,
-                        iconColor: AppColors.success,
                         title: 'Bahasa',
                         subtitle: 'Bahasa Indonesia',
                         onTap: () {},
@@ -263,31 +381,26 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Lainnya',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textTertiary,
-                      letterSpacing: 0.5,
+                    style: AppTheme().labelCaps.copyWith(
+                      color: AppColors.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _MenuCard(
                     items: [
                       _MenuItem(
                         icon: Icons.help_outline_rounded,
-                        iconColor: AppColors.textSecondary,
                         title: 'Bantuan & FAQ',
                         onTap: () {},
                       ),
                       _MenuItem(
                         icon: Icons.info_outline_rounded,
-                        iconColor: AppColors.textSecondary,
                         title: 'Tentang Aplikasi',
                         subtitle: 'Versi 1.0.0',
                         onTap: () {},
@@ -301,7 +414,7 @@ class _ProfilePageState extends State<ProfilePage> {
           // Logout
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 100),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
               child: SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -315,64 +428,47 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         title: Text(
                           'Logout',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: AppTheme().headlineSmall,
                         ),
                         content: Text(
                           'Apakah Anda yakin ingin keluar?',
-                          style: GoogleFonts.plusJakartaSans(),
+                          style: AppTheme().bodyMedium,
                         ),
                         actions: [
-                          TextButton(
+                          ClayButton(
+                            text: 'Batal',
+                            isGhost: true,
                             onPressed: () => Navigator.pop(ctx),
-                            child: Text(
-                              'Batal',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
                           ),
-                          ElevatedButton(
-                            onPressed: () {
+                          ClayButton(
+                            text: 'Logout',
+                            backgroundColor: AppColors.onSurface,
+                            textColor: AppColors.surface,
+                            onPressed: () async {
                               Navigator.pop(ctx);
-                              Navigator.of(context)
-                                  .pushReplacementNamed('/login');
+                              await _authService.signOut();
+                              if (mounted) {
+                                Navigator.of(context).pushReplacementNamed('/login');
+                              }
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.error,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text(
-                              'Logout',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.white,
-                              ),
-                            ),
                           ),
                         ],
                       ),
                     );
                   },
                   icon: const Icon(Icons.logout_rounded,
-                      color: AppColors.error, size: 20),
+                      size: 20),
                   label: Text(
                     'Logout',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
+                    style: AppTheme().bodyLarge.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.error,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.error),
+                    side: const BorderSide(color: Color(0xFFE5E7EB)),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                      borderRadius: BorderRadius.circular(12),
+                  ),
                   ),
                 ),
               ),
@@ -384,7 +480,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _vDivider() {
-    return Container(width: 1, height: 36, color: AppColors.divider);
+    return Container(width: 1, height: 32, color: const Color(0xFFE5E7EB));
   }
 }
 
@@ -392,31 +488,30 @@ class _StatItem extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatItem({required this.label, required this.value});
+  const _StatItem({
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
+    return Column(
+      children: [
+        Text(
+          value,
+          style: AppTheme().displayLarge.copyWith(
+            fontSize: 24,
+            color: AppColors.onSurface,
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: AppTheme().labelSmall.copyWith(
+            color: AppColors.onSurfaceVariant,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -432,7 +527,6 @@ class _MenuCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: items.asMap().entries.map((entry) {
@@ -453,7 +547,6 @@ class _MenuCard extends StatelessWidget {
 
 class _MenuItem extends StatelessWidget {
   final IconData icon;
-  final Color iconColor;
   final String title;
   final String? subtitle;
   final Widget? trailing;
@@ -461,7 +554,6 @@ class _MenuItem extends StatelessWidget {
 
   const _MenuItem({
     required this.icon,
-    required this.iconColor,
     required this.title,
     this.subtitle,
     this.trailing,
@@ -478,13 +570,13 @@ class _MenuItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
+                color: const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
+              child: Icon(icon, color: const Color(0xFF1F2937), size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -493,19 +585,16 @@ class _MenuItem extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                    style: AppTheme().bodyLarge.copyWith(
+                      color: AppColors.onSurface,
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: AppColors.textTertiary,
+                      style: AppTheme().labelSmall.copyWith(
+                        color: AppColors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -515,7 +604,7 @@ class _MenuItem extends StatelessWidget {
             trailing ??
                 const Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.textTertiary,
+                  color: Color(0xFF9CA3AF),
                   size: 20,
                 ),
           ],

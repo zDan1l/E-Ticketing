@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../services/auth_service.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -18,6 +19,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -45,29 +47,42 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
     super.dispose();
   }
 
-  void _handleSubmit() {
+  void _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
+
+      final result = await _authService.resetPassword(_emailController.text.trim());
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          if (result['success'] == true) {
             _isEmailSent = true;
-          });
+          }
+        });
+
+        if (result['success'] != true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal mengirim email reset'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         }
-      });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        leading: ClayIconButton(
+          icon: Icons.arrow_back_ios_new_rounded,
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -98,7 +113,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: AppColors.primarySurface,
+            color: AppColors.primaryFixedDim.withOpacity(0.3),
             borderRadius: BorderRadius.circular(18),
           ),
           child: const Icon(
@@ -110,19 +125,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
         const SizedBox(height: 28),
         Text(
           'Lupa Password? 🔑',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
+          style: Theme.of(context).textTheme.displayLarge,
         ),
         const SizedBox(height: 8),
         Text(
           'Masukkan email yang terdaftar. Kami akan mengirimkan link untuk mereset password Anda.',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: AppColors.onSurfaceVariant,
             height: 1.5,
           ),
         ),
@@ -132,30 +141,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Email',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
+              StyledInput(
+                label: 'Email',
+                hint: 'Masukkan email terdaftar',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Masukkan email terdaftar',
-                  prefixIcon: Icon(
-                    Icons.email_outlined,
-                    color: AppColors.textTertiary,
-                    size: 20,
-                  ),
-                ),
+                prefixIcon: Icons.email_outlined,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Email tidak boleh kosong';
@@ -170,32 +161,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
+                child: ClayButton(
+                  text: _isLoading ? 'Memuat...' : 'Kirim Link Reset',
                   onPressed: _isLoading ? null : _handleSubmit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: AppColors.white,
-                          ),
-                        )
-                      : Text(
-                          'Kirim Link Reset',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
-                          ),
-                        ),
                 ),
               ),
             ],
@@ -214,10 +182,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                 const SizedBox(width: 6),
                 Text(
                   'Kembali ke Login',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -237,66 +204,51 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: AppColors.success.withValues(alpha: 0.1),
+            color: AppColors.successAccent.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(
             Icons.mark_email_read_rounded,
-            color: AppColors.success,
+            color: AppColors.successAccent,
             size: 48,
           ),
         ),
         const SizedBox(height: 32),
         Text(
           'Email Terkirim! ✉️',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
+          style: Theme.of(context).textTheme.headlineMedium,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
         Text(
           'Kami telah mengirimkan link reset password ke:',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            color: AppColors.textSecondary,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: AppColors.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
           _emailController.text,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppColors.primary,
+            fontWeight: FontWeight.w700,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
+        StyledCard(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.warning.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.warning.withValues(alpha: 0.3),
-            ),
-          ),
+          glowColor: AppColors.warningAccent,
           child: Row(
             children: [
               const Icon(Icons.info_outline_rounded,
-                  color: AppColors.warning, size: 20),
+                  color: AppColors.warningAccent, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Link akan expired dalam 1 jam. Cek juga folder spam.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     height: 1.4,
                   ),
                 ),
@@ -306,43 +258,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
         ),
         const SizedBox(height: 32),
         // Resend
-        TextButton(
+        ClayButton(
+          text: 'Kirim ulang email',
           onPressed: () {
             setState(() => _isEmailSent = false);
           },
-          child: Text(
-            'Kirim ulang email',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
-          ),
+          isGhost: true,
         ),
         const SizedBox(height: 12),
         // Back to login
         SizedBox(
           width: double.infinity,
           height: 52,
-          child: ElevatedButton(
+          child: ClayButton(
+            text: 'Kembali ke Login',
             onPressed: () {
               Navigator.of(context).popUntil((route) => route.isFirst);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              elevation: 0,
-            ),
-            child: Text(
-              'Kembali ke Login',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-              ),
-            ),
           ),
         ),
       ],

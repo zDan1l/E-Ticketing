@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../shared/components/components.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/dummy_data.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/ticket/presentation/pages/ticket_list_page.dart';
 import '../../features/notification/presentation/pages/notification_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../services/notification_service.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -16,11 +16,35 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  final NotificationService _notifService = NotificationService();
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final count = await _notifService.getUnreadNotificationsCount().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => 0,
+      );
+      if (mounted) {
+        setState(() {
+          _unreadCount = count;
+        });
+      }
+    } catch (e) {
+      print('Error loading unread count: $e');
+    }
+  }
 
   final _pages = [
-    const DashboardPage(),
+    DashboardPage(key: DashboardPage.dashboardKey),
     const TicketListPage(),
-    const SizedBox(), // Placeholder for create ticket FAB
+    const SizedBox(),
     const NotificationPage(),
     const ProfilePage(),
   ];
@@ -32,103 +56,98 @@ class _MainNavigationState extends State<MainNavigation> {
         index: _currentIndex == 2 ? 0 : _currentIndex,
         children: _pages,
       ),
-      floatingActionButton: GestureDetector(
-        onTap: () => Navigator.of(context).pushNamed('/create-ticket'),
-        child: Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                blurRadius: 40,
-                offset: const Offset(0, 16),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.add_rounded, color: AppColors.white, size: 32),
-        ),
+      floatingActionButton: ClayFab(
+        icon: Icons.add_rounded,
+        tooltip: 'Create Ticket',
+        onPressed: () async {
+          final result = await Navigator.of(
+            context,
+          ).pushNamed('/create-ticket');
+          if (result == true && mounted) {
+            final dashboardState = DashboardPage.dashboardKey.currentState;
+            if (dashboardState != null) {
+              dashboardState.refreshDashboard();
+            }
+          }
+        },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: Container(
+      bottomNavigationBar: _FloatingBottomNav(
+        currentIndex: _currentIndex,
+        unreadCount: _unreadCount,
+        onIndexChange: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+    );
+  }
+}
+
+class _FloatingBottomNav extends StatelessWidget {
+  final int currentIndex;
+  final int unreadCount;
+  final ValueChanged<int> onIndexChange;
+
+  const _FloatingBottomNav({
+    required this.currentIndex,
+    required this.unreadCount,
+    required this.onIndexChange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      child: Container(
+        height: 72,
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 24,
-              offset: const Offset(0, -8),
+          color: AppColors.inverseSurface,
+          borderRadius: BorderRadius.circular(
+            24,
+          ), // matching style guide default tracking (1.5rem)
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavIcon(
+              icon: Icons.dashboard_outlined,
+              isSelected: currentIndex == 0,
+              onTap: () => onIndexChange(0),
+            ),
+            _NavIcon(
+              icon: Icons.confirmation_number_outlined,
+              isSelected: currentIndex == 1,
+              onTap: () => onIndexChange(1),
+            ),
+            const SizedBox(width: 64),
+            _NavIcon(
+              icon: Icons.notifications_outlined,
+              isSelected: currentIndex == 3,
+              badgeCount: unreadCount,
+              onTap: () => onIndexChange(3),
+            ),
+            _NavIcon(
+              icon: Icons.person_outline,
+              isSelected: currentIndex == 4,
+              onTap: () => onIndexChange(4),
             ),
           ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _NavItem(
-                    icon: Icons.dashboard_rounded,
-                    label: 'Dashboard',
-                    isSelected: _currentIndex == 0,
-                    onTap: () => setState(() => _currentIndex = 0),
-                  ),
-                  _NavItem(
-                    icon: Icons.confirmation_number_rounded,
-                    label: 'Tiket',
-                    isSelected: _currentIndex == 1,
-                    onTap: () => setState(() => _currentIndex = 1),
-                  ),
-                  const SizedBox(width: 64), // Space for FAB
-                  _NavItem(
-                    icon: Icons.notifications_rounded,
-                    label: 'Notifikasi',
-                    isSelected: _currentIndex == 3,
-                    badgeCount: DummyData.unreadNotifications,
-                    onTap: () => setState(() => _currentIndex = 3),
-                  ),
-                  _NavItem(
-                    icon: Icons.person_rounded,
-                    label: 'Profil',
-                    isSelected: _currentIndex == 4,
-                    onTap: () => setState(() => _currentIndex = 4),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavIcon extends StatelessWidget {
   final IconData icon;
-  final String label;
   final bool isSelected;
   final VoidCallback onTap;
   final int badgeCount;
 
-  const _NavItem({
+  const _NavIcon({
     required this.icon,
-    required this.label,
     required this.isSelected,
     required this.onTap,
     this.badgeCount = 0,
@@ -139,83 +158,52 @@ class _NavItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
+            Center(
+              child: Icon(
+                icon,
+                size: 24,
+                color: isSelected
+                    ? AppColors.secondaryContainer
+                    : AppColors.inverseOnSurface.withValues(alpha: 0.5),
+              ),
+            ),
+            if (badgeCount > 0)
+              Positioned(
+                right: 4,
+                top: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.15)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.error,
+                    borderRadius: BorderRadius.circular(9999),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 24,
-                    color: isSelected ? AppColors.primary : AppColors.textTertiary,
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
                   ),
-                ),
-                if (badgeCount > 0)
-                  Positioned(
-                    right: -6,
-                    top: -2,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.error,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.error.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Center(
-                        child: Text(
-                          badgeCount > 9 ? '9+' : '$badgeCount',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                            height: 1.0,
-                          ),
-                        ),
+                  child: Center(
+                    child: Text(
+                      badgeCount > 9 ? '9+' : '$badgeCount',
+                      style: const TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 9,
+                        color: AppColors.onError,
+                        fontWeight: FontWeight.w800,
+                        height: 1.0,
                       ),
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.textTertiary,
-                letterSpacing: 0.2,
+                ),
               ),
-            ),
           ],
         ),
       ),
