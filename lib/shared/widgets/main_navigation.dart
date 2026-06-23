@@ -180,9 +180,10 @@ class _StyleGuideNavTab extends StatelessWidget {
         curve: Curves.fastOutSlowIn,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          // Active state turns into a clean flat pill capsule highlight from your style sheet
-          color: isSelected ? AppColors.secondaryContainer : Colors.transparent, //
-          borderRadius: BorderRadius.circular(12), // rounded-xl scale
+          color: isSelected
+              ? AppColors.secondaryContainer
+              : Colors.transparent, //
+          borderRadius: BorderRadius.circular(12), //
         ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -196,8 +197,9 @@ class _StyleGuideNavTab extends StatelessWidget {
                 Icon(
                   icon,
                   size: 22,
-                  color: isSelected 
-                      ? AppColors.onSecondaryContainer //
+                  color: isSelected
+                      ? AppColors
+                            .onSecondaryContainer //
                       : AppColors.onSurfaceVariant, //
                 ),
                 const SizedBox(height: 2),
@@ -205,10 +207,13 @@ class _StyleGuideNavTab extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans', //
-                    fontSize: 11, // text-label-sm
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.500, //
-                    color: isSelected 
-                        ? AppColors.onSecondaryContainer //
+                    fontSize: 11, //
+                    fontWeight: isSelected
+                        ? FontWeight.w700
+                        : FontWeight.w500, // Fixed syntax typo here
+                    color: isSelected
+                        ? AppColors
+                              .onSecondaryContainer //
                         : AppColors.onSurfaceVariant, //
                     letterSpacing: 0.2,
                   ),
@@ -220,9 +225,12 @@ class _StyleGuideNavTab extends StatelessWidget {
                 top: -4,
                 right: -6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary, // Using clean solid brand blue
+                    color: AppColors.primary, //
                     borderRadius: BorderRadius.circular(9999),
                   ),
                   constraints: const BoxConstraints(
