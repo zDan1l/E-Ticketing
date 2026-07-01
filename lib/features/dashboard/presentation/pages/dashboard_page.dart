@@ -8,6 +8,10 @@ import '../../../../services/auth_service.dart';
 import '../../../../services/ticket_service.dart';
 import '../../../../services/user_api_service.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DashboardPage — Enhanced UI with Unsplash illustrations and loading states
+// ─────────────────────────────────────────────────────────────────────────────
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -107,10 +111,10 @@ class _DashboardPageState extends State<DashboardPage>
     final currentUser = _authService.currentUser;
 
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.canvas, //
-        body: Center(
-          child: CircularProgress(value: 0.3, size: 48, strokeWidth: 4),
+      return Scaffold(
+        backgroundColor: AppColors.canvas,
+        body: SafeArea(
+          child: _buildLoadingSkeleton(),
         ),
       );
     }
@@ -540,29 +544,13 @@ class _DashboardPageState extends State<DashboardPage>
                 0,
                 AppTheme.containerPadding,
                 120,
-              ), //
+              ),
               sliver: recentTickets.isEmpty
                   ? SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.inbox_rounded,
-                                size: 48,
-                                color: AppColors.outline,
-                              ), //
-                              const SizedBox(height: 12),
-                              Text(
-                                'Belum ada tiket masuk',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium, //
-                              ),
-                            ],
-                          ),
-                        ),
+                      child: EmptyStates.noTickets(
+                        onCreate: () {
+                          Navigator.of(context).pushNamed('/create-ticket');
+                        },
                       ),
                     )
                   : SliverList(
@@ -599,6 +587,149 @@ class _DashboardPageState extends State<DashboardPage>
       default:
         return 'GUEST';
     }
+  }
+
+  /// Loading skeleton for dashboard
+  Widget _buildLoadingSkeleton() {
+    return CustomScrollView(
+      slivers: [
+        // Header skeleton
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.containerPadding),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    _ShimmerCircle(size: 48),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _ShimmerLine(width: 100, height: 16),
+                        const SizedBox(height: 8),
+                        _ShimmerLine(width: 60, height: 12),
+                      ],
+                    ),
+                  ],
+                ),
+                _ShimmerCircle(size: 44),
+              ],
+            ),
+          ),
+        ),
+        // Hero text skeleton
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTheme.containerPadding,
+              8,
+              AppTheme.containerPadding,
+              AppTheme.stackGap,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ShimmerLine(width: 120, height: 32),
+                const SizedBox(height: 8),
+                _ShimmerLine(width: 150, height: 14),
+              ],
+            ),
+          ),
+        ),
+        // Search skeleton
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.containerPadding,
+            ),
+            child: _ShimmerContainer(height: 52, borderRadius: 16),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 28)),
+        // Stats skeleton
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.containerPadding,
+            ),
+            child: const StatsShimmer(count: 4),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Loading skeleton components
+class _ShimmerContainer extends StatelessWidget {
+  final double? width;
+  final double? height;
+  final double borderRadius;
+
+  const _ShimmerContainer({
+    this.width,
+    this.height,
+    this.borderRadius = 16,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.surfaceContainerLow,
+            AppColors.surfaceContainerHigh,
+            AppColors.surfaceContainerLow,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ShimmerLine extends StatelessWidget {
+  final double? width;
+  final double height;
+
+  const _ShimmerLine({this.width, this.height = 14});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShimmerContainer(
+      width: width != null ? (width! > 1 ? width! * 300 : width!) : null,
+      height: height,
+      borderRadius: 4,
+    );
+  }
+}
+
+class _ShimmerCircle extends StatelessWidget {
+  final double size;
+
+  const _ShimmerCircle({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.surfaceContainerLow,
+            AppColors.surfaceContainerHigh,
+            AppColors.surfaceContainerLow,
+          ],
+        ),
+      ),
+    );
   }
 }
 

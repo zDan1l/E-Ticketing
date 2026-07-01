@@ -49,6 +49,7 @@ dependencies:
   # Image picker for camera/gallery
   image_picker: ^1.0.4
   flutter_inset_shadow: ^2.0.3
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:

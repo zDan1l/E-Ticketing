@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import '../models/ticket_model.dart';
 import '../core/config/app_config.dart';
 import '../core/config/http_client.dart';
@@ -14,38 +14,58 @@ class AttachmentService {
   final HttpClient _httpClient = HttpClient();
 
   /// Upload attachment to ticket
-  Future<AttachmentModel?> uploadAttachment(String ticketId, File file) async {
+  Future<AttachmentModel?> uploadAttachment(String ticketId, XFile file) async {
     try {
-      // Create multipart request
-      final uri = Uri.parse('${AppConfig.baseUrl}${AppConfig.ticketsPath}/$ticketId/attachments');
+      // Create multipart request using correct URL
+      final uri = Uri.parse('${AppConfig.apiBaseUrl}${AppConfig.ticketsPath}/$ticketId/attachments');
+
+      print('📤 Upload Attachment - Ticket ID: $ticketId');
+      print('📤 Upload Attachment - File: ${file.name}');
+      print('📤 Upload Attachment - URL: $uri');
+      print('📤 Upload Attachment - API Base URL: ${AppConfig.apiBaseUrl}');
+
       final request = http.MultipartRequest('POST', uri);
 
       // Add authorization header
       final token = await _httpClient.getToken();
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
+        print('📤 Upload Attachment - Auth header added (length: ${token.length})');
+      } else {
+        print('❌ Upload Attachment - No auth token available');
       }
 
-      // Add file
-      final fileStream = http.ByteStream(file.openRead());
-      final fileLength = await file.length();
-      final multipartFile = http.MultipartFile(
+      // Add common headers
+      request.headers['Accept'] = 'application/json';
+
+      // Add file using bytes
+      final bytes = await file.readAsBytes();
+      print('📤 Upload Attachment - File size: ${bytes.length} bytes');
+
+      final multipartFile = http.MultipartFile.fromBytes(
         'file',
-        fileStream,
-        fileLength,
-        filename: file.path.split('/').last,
+        bytes,
+        filename: file.name,
       );
       request.files.add(multipartFile);
+
+      print('📤 Upload Attachment - Sending request to: $uri');
+      print('📤 Upload Attachment - Request headers: ${request.headers}');
 
       // Send request
       final streamedResponse = await request.send();
       final response = await streamedResponse.stream.bytesToString();
+
+      print('📤 Upload Attachment - Response status: ${streamedResponse.statusCode}');
+      print('📤 Upload Attachment - Response body: $response');
 
       // Parse response
       final Map<String, dynamic> responseData = _httpClient.parseResponse(response);
 
       if (responseData['success'] == true) {
         final data = responseData['data'] as Map<String, dynamic>;
+        print('✅ Upload Attachment - Success! ID: ${data['id']}');
+
         return AttachmentModel(
           id: data['id']?.toString() ?? '',
           fileName: data['file_name'] as String? ?? '',
@@ -54,11 +74,13 @@ class AttachmentService {
           mimeType: data['mime_type'] as String? ?? '',
           createdAt: DateTime.tryParse(data['created_at'] as String? ?? '') ?? DateTime.now(),
         );
+      } else {
+        print('❌ Upload Attachment - Failed: ${responseData['message']}');
+        return null;
       }
-
-      return null;
     } catch (e) {
-      print('Error uploading attachment: $e');
+      print('❌ Error uploading attachment: $e');
+      print('❌ Error type: ${e.runtimeType}');
       return null;
     }
   }
@@ -109,8 +131,16 @@ class AttachmentService {
     if (filePath.startsWith('http')) {
       return filePath;
     }
-    // Otherwise, construct the full URL
-    return '${AppConfig.baseUrl}$filePath';
+
+    // Ensure filePath starts with /
+    String normalizedPath = filePath.startsWith('/') ? filePath : '/$filePath';
+
+    // Construct the full URL
+    final fullUrl = '${AppConfig.baseUrl}$normalizedPath';
+
+    print('AttachmentService - Generated URL: $fullUrl'); // Debug URL generation
+
+    return fullUrl;
   }
 
   /// Check if file type is supported for upload
@@ -120,9 +150,10 @@ class AttachmentService {
     return supportedExtensions.contains(extension);
   }
 
-  /// Check if file size is within limit (5MB)
-  bool isValidFileSize(int fileSize) {
-    return fileSize <= 5 * 1024 * 1024; // 5MB
+  /// Check if file size is within limit (5MB) - works with XFile
+  Future<bool> isValidFileSize(XFile file) async {
+    final bytes = await file.readAsBytes();
+    return bytes.length <= 5 * 1024 * 1024; // 5MB
   }
 
   /// Get supported file types for display

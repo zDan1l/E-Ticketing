@@ -70,7 +70,10 @@ class _RegisterPageState extends State<RegisterPage>
         if (result['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Registrasi berhasil! Silakan login.'),
+              content: Text(
+                'Registrasi berhasil! Silakan login.',
+                style: const TextStyle(color: AppColors.onBackground),
+              ),
               backgroundColor: AppColors.successAccent,
               behavior: SnackBarBehavior.floating,
             ),
@@ -115,6 +118,39 @@ class _RegisterPageState extends State<RegisterPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
+                      // Hero illustration
+                      Center(
+                        child: Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.12),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Image.network(
+                            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: AppColors.primaryContainer,
+                                child: const Icon(
+                                  Icons.person_add_rounded,
+                                  size: 64,
+                                  color: AppColors.primary,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Text(
                         'Buat Akun Baru ✨',
                         style: Theme.of(context).textTheme.displayLarge,

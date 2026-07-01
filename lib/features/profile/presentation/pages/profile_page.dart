@@ -179,7 +179,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         _authService.currentUser?.email ?? '',
                         style: AppTheme().bodyMedium.copyWith(
-                          color: AppColors.onPrimaryContainer,
+                          color: AppColors.onPrimary,
                         ),
                       ),
                       const SizedBox(height: 12),

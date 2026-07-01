@@ -39,7 +39,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
           setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Profil berhasil diperbarui'),
+              content: Text(
+                'Profil berhasil diperbarui',
+                style: const TextStyle(color: AppColors.onBackground),
+              ),
               backgroundColor: AppColors.successAccent,
               behavior: SnackBarBehavior.floating,
             ),

@@ -1,10 +1,13 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../models/ticket_model.dart';
 import '../../../../models/role_model.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/ticket_service.dart';
+import '../../../../services/attachment_service.dart';
 import '../../../../shared/widgets/assign_ticket_dialog.dart';
 import '../../../../shared/widgets/status_update_buttons.dart';
 import '../../../../shared/components/components.dart';
@@ -47,9 +50,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   List<TicketTimeline> _timeline = [];
   List<CommentModel> _comments = [];
   List<AttachmentModel> _attachments = [];
-  bool _isLoadingTimeline = true;
   final TextEditingController _commentController = TextEditingController();
   bool _isSubmittingComment = false;
+  final Map<String, Uint8List> _imageBytesCache = {};
 
   @override
   void initState() {
@@ -71,13 +74,20 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           _timeline = results[0] as List<TicketTimeline>;
           _comments = results[1] as List<CommentModel>;
           _attachments = results[2] as List<AttachmentModel>;
-          _isLoadingTimeline = false;
+
+          // Debug attachment data
+          print('Loaded ${_attachments.length} attachments:');
+          for (final attachment in _attachments) {
+            print('  - ${attachment.fileName}');
+            print('    MIME type: ${attachment.mimeType}');
+            print('    Is image: ${attachment.isImage}');
+            print('    File path: ${attachment.filePath}');
+          }
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingTimeline = false);
-      }
+      print('Error loading attachments: $e'); // Debug error
+      // Error handling - keep existing data
     }
   }
 
@@ -128,9 +138,60 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     }
   }
 
+  Future<Uint8List?> _loadImageBytes(String imageUrl) async {
+    if (_imageBytesCache.containsKey(imageUrl)) {
+      return _imageBytesCache[imageUrl];
+    }
+
+    try {
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        _imageBytesCache[imageUrl] = bytes;
+        return bytes;
+      }
+    } catch (e) {
+      print('Error loading image: $e');
+    }
+    return null;
+  }
+
+  void _showImageDialog(Uint8List imageBytes, String fileName) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Image.memory(
+                    imageBytes,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _commentController.dispose();
+    _imageBytesCache.clear();
     super.dispose();
   }
 
@@ -239,10 +300,13 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               if (success) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tiket berhasil dihapus'),
+                    SnackBar(
+                      content: const Text(
+                        'Tiket berhasil dihapus',
+                        style: TextStyle(color: AppColors.onBackground),
+                      ),
                       backgroundColor: AppColors.successAccent,
-                      duration: Duration(seconds: 2),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                   Navigator.of(context).pop();
@@ -301,10 +365,13 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                         attachmentsCount: _attachments.length);
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Lampiran berhasil dihapus'),
+                    SnackBar(
+                      content: const Text(
+                        'Lampiran berhasil dihapus',
+                        style: TextStyle(color: AppColors.onBackground),
+                      ),
                       backgroundColor: AppColors.successAccent,
-                      duration: Duration(seconds: 2),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 }
@@ -598,84 +665,35 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                         ),
                         if (_attachments.isNotEmpty) ...[
                           const SizedBox(height: 16),
-                          ..._attachments.map((attachment) => Container(
-                                margin:
-                                    const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  // Solid canvas — no glow, no opacity
-                                  color: AppColors.canvas,
-                                  borderRadius:
-                                      BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        // primaryFixed = lightest primary
-                                        // tint token — solid, no opacity
-                                        color: AppColors.primaryFixed,
-                                        borderRadius:
-                                            BorderRadius.circular(10),
-                                      ),
-                                      child: Icon(
-                                        attachment.isImage
-                                            ? Icons.image_rounded
-                                            : Icons
-                                                .attach_file_rounded,
-                                        color: AppColors.primary,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            attachment.fileName,
-                                            style: AppTheme()
-                                                .bodyMedium
-                                                .copyWith(
-                                                  color: AppColors
-                                                      .onSurface,
-                                                ),
-                                            maxLines: 1,
-                                            overflow:
-                                                TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            attachment.fileSizeDisplay,
-                                            style: AppTheme()
-                                                .labelSmall
-                                                .copyWith(
-                                                  color: AppColors
-                                                      .onSurfaceVariant,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    if (_authService.currentUser
-                                            ?.hasPermission(UserPermission
-                                                .canDeleteTicket) ??
-                                        false)
-                                      IconButton(
-                                        onPressed: () =>
-                                            _showDeleteAttachmentDialog(
-                                                attachment),
-                                        icon: const Icon(
-                                            Icons.delete_rounded,
-                                            size: 18),
-                                        color: AppColors.error,
-                                        tooltip: 'Hapus Lampiran',
-                                      ),
-                                  ],
-                                ),
-                              )),
+                          // Separate images from other files
+                          ..._attachments.where((a) => a.isImage).map((attachment) =>
+                              _ImageAttachmentCard(
+                                attachment: attachment,
+                                imageBytesCache: _imageBytesCache,
+                                onLoadImage: _loadImageBytes,
+                                onImageTap: _showImageDialog,
+                                onDelete: () => _showDeleteAttachmentDialog(attachment),
+                                canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
+                              ),
+                          ),
+                          // Other files (non-images)
+                          ..._attachments.where((a) => !a.isImage).map((attachment) =>
+                              _FileAttachmentCard(
+                                attachment: attachment,
+                                onDelete: () => _showDeleteAttachmentDialog(attachment),
+                                canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
+                              ),
+                          ),
+                        ] else ...[
+                          const SizedBox(height: 16),
+                          Center(
+                            child: Text(
+                              'Tidak ada lampiran',
+                              style: AppTheme().bodyMedium.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     ),
@@ -916,5 +934,281 @@ class _PersonInfo extends StatelessWidget {
         ),
       ],
     );
+  }
+}// ─────────────────────────────────────────────────────────────────────────────
+// _ImageAttachmentCard - Widget untuk menampilkan attachment gambar dengan preview
+// ─────────────────────────────────────────────────────────────────────────────
+class _ImageAttachmentCard extends StatefulWidget {
+  final AttachmentModel attachment;
+  final Map<String, Uint8List> imageBytesCache;
+  final Future<Uint8List?> Function(String imageUrl) onLoadImage;
+  final void Function(Uint8List imageBytes, String fileName) onImageTap;
+  final VoidCallback onDelete;
+  final bool canDelete;
+
+  const _ImageAttachmentCard({
+    required this.attachment,
+    required this.imageBytesCache,
+    required this.onLoadImage,
+    required this.onImageTap,
+    required this.onDelete,
+    required this.canDelete,
+  });
+
+  @override
+  State<_ImageAttachmentCard> createState() => _ImageAttachmentCardState();
+}
+
+class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
+  Uint8List? _imageBytes;
+  bool _isLoading = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  Future<void> _loadImage() async {
+    if (!widget.attachment.isImage) return;
+
+    final attachmentService = AttachmentService();
+    final imageUrl = attachmentService.getFileUrl(widget.attachment.filePath);
+
+    print('Loading image from: $imageUrl'); // Debug URL
+    print('File path: ${widget.attachment.filePath}'); // Debug file path
+
+    setState(() => _isLoading = true);
+
+    final bytes = await widget.onLoadImage(imageUrl);
+    if (mounted) {
+      setState(() {
+        _imageBytes = bytes;
+        _isLoading = false;
+        _hasError = bytes == null;
+      });
+
+      if (bytes == null) {
+        print('Failed to load image from: $imageUrl'); // Debug error
+      } else {
+        print('Successfully loaded image: ${bytes.length} bytes'); // Debug success
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        height: 200,
+        decoration: BoxDecoration(
+          color: AppColors.canvas,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_hasError || _imageBytes == null) {
+      return _FileAttachmentCard(
+        attachment: widget.attachment,
+        onDelete: widget.onDelete,
+        canDelete: widget.canDelete,
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.canvas,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image preview
+          GestureDetector(
+            onTap: () => widget.onImageTap(_imageBytes!, widget.attachment.fileName),
+            child: Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: AppColors.surfaceContainerLow,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.memory(
+                  _imageBytes!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.broken_image, size: 48, color: AppColors.onSurfaceVariant),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // File info bar
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryFixed,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.image_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.attachment.fileName,
+                      style: AppTheme().bodyMedium.copyWith(
+                        color: AppColors.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      widget.attachment.fileSizeDisplay,
+                      style: AppTheme().labelSmall.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.canDelete)
+                IconButton(
+                  onPressed: widget.onDelete,
+                  icon: const Icon(
+                    Icons.delete_rounded,
+                    size: 18,
+                  ),
+                  color: AppColors.error,
+                  tooltip: 'Hapus Lampiran',
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _FileAttachmentCard - Widget untuk menampilkan attachment non-gambar
+// ─────────────────────────────────────────────────────────────────────────────
+class _FileAttachmentCard extends StatelessWidget {
+  final AttachmentModel attachment;
+  final VoidCallback onDelete;
+  final bool canDelete;
+
+  const _FileAttachmentCard({
+    required this.attachment,
+    required this.onDelete,
+    required this.canDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.canvas,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primaryFixed,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              _getFileIcon(attachment.fileName),
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  attachment.fileName,
+                  style: AppTheme().bodyMedium.copyWith(
+                    color: AppColors.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  attachment.fileSizeDisplay,
+                  style: AppTheme().labelSmall.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (canDelete)
+            IconButton(
+              onPressed: onDelete,
+              icon: const Icon(
+                Icons.delete_rounded,
+                size: 18,
+              ),
+              color: AppColors.error,
+              tooltip: 'Hapus Lampiran',
+            ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getFileIcon(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return Icons.picture_as_pdf_rounded;
+      case 'doc':
+      case 'docx':
+        return Icons.description_rounded;
+      case 'xls':
+      case 'xlsx':
+        return Icons.table_chart_rounded;
+      case 'txt':
+        return Icons.text_snippet_rounded;
+      case 'zip':
+      case 'rar':
+        return Icons.folder_zip_rounded;
+      default:
+        return Icons.attach_file_rounded;
+    }
   }
 }

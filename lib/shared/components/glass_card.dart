@@ -27,6 +27,7 @@ class GlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(16);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget cardChild = Container(
       width: width,
@@ -39,10 +40,20 @@ class GlassCard extends StatelessWidget {
         border:
             border ??
             Border.all(
-              color: AppColors.outlineVariant.withValues(alpha: 0.3),
+              color: isDark
+                  ? AppColors.outlineVariant.withValues(alpha: 0.2)
+                  : AppColors.outlineVariant.withValues(alpha: 0.5),
               width: 1,
             ),
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2E2E2E) : Colors.white,
+        // Add subtle shadow for depth
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: child,
     );
@@ -53,6 +64,8 @@ class GlassCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: effectiveBorderRadius,
+          splashColor: AppColors.primary.withValues(alpha: 0.08),
+          highlightColor: AppColors.primary.withValues(alpha: 0.04),
           child: cardChild,
         ),
       );
@@ -89,6 +102,7 @@ class StyledCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardContent = Container(
       width: width,
       height: height,
@@ -96,13 +110,25 @@ class StyledCard extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(20),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2E2E2E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: hasBorder
             ? Border.all(
-                color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                color: isDark
+                    ? AppColors.outlineVariant.withValues(alpha: 0.2)
+                    : AppColors.outlineVariant.withValues(alpha: 0.5),
                 width: 1,
               )
+            : null,
+        // Add subtle shadow for depth
+        boxShadow: hasShadow || onTap != null
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
             : null,
       ),
       child: child,
@@ -114,6 +140,8 @@ class StyledCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
+          splashColor: AppColors.primary.withValues(alpha: 0.08),
+          highlightColor: AppColors.primary.withValues(alpha: 0.04),
           child: cardContent,
         ),
       );

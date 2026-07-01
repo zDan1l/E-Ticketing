@@ -108,21 +108,39 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        // Icon
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: AppColors.primaryContainer,
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: const Icon(
-            Icons.lock_reset_rounded,
-            color: AppColors.primary,
-            size: 32,
+        // Hero illustration
+        Center(
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.secondary.withValues(alpha: 0.15),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Image.network(
+              'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=80',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: AppColors.secondaryContainer,
+                  child: const Icon(
+                    Icons.lock_reset_rounded,
+                    size: 48,
+                    color: AppColors.secondary,
+                  ),
+                );
+              },
+            ),
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
         Text(
           'Lupa Password? 🔑',
           style: Theme.of(context).textTheme.displayLarge,

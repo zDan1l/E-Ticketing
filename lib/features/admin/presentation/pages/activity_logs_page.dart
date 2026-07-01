@@ -80,40 +80,10 @@ class _ActivityLogsPageState extends State<ActivityLogsPage> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            )
+          ? const FullPageLoading(message: 'Memuat log aktivitas...')
           : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline_rounded,
-                          size: 48,
-                          color: AppColors.error),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Gagal memuat aktivitas',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _errorMessage!,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ClayButton(
-                        text: 'Coba Lagi',
-                        onPressed: () => _loadActivities(page: 1),
-                        icon: Icons.refresh_rounded,
-                      ),
-                    ],
-                  ),
+              ? EmptyStates.serverError(
+                  onRetry: () => _loadActivities(page: 1),
                 )
               : Column(
                   children: [

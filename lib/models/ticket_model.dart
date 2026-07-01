@@ -189,4 +189,14 @@ class AttachmentModel {
 
   bool get isImage => mimeType.startsWith('image/');
   String get fileExtension => fileName.split('.').last.toLowerCase();
+
+  /// Get full URL for downloading/viewing this attachment
+  String get url {
+    if (filePath.startsWith('http')) {
+      return filePath;
+    }
+    // In production, this should use: AttachmentService().getFileUrl(filePath)
+    // For now, return the relative path and let the service handle it
+    return filePath;
+  }
 }

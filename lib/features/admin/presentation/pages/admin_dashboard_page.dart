@@ -107,18 +107,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            )
+          ? const FullPageLoading(message: 'Memuat statistik admin...')
           : _errorMessage != null
-              ? _ErrorState(
-                  message: _errorMessage!,
-                  onRefresh: _loadDashboardStats,
+              ? EmptyStates.serverError(
+                  onRetry: _loadDashboardStats,
                 )
               : _dashboardStats == null
-                  ? _EmptyState(onRefresh: _loadDashboardStats)
+                  ? EmptyStates.noData(
+                      title: 'Tidak ada data',
+                      subtitle: 'Statistik admin belum tersedia',
+                      onRefresh: _loadDashboardStats,
+                    )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -454,112 +453,6 @@ class _RoleStatCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final VoidCallback onRefresh;
-
-  const _EmptyState({required this.onRefresh});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.primary,
-                  width: 2,
-                ),
-              ),
-              child: const Icon(
-                Icons.dashboard_rounded,
-                size: 48,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Tidak ada data',
-              style: AppTheme().headlineSmall.copyWith(
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Statistik admin belum tersedia',
-              style: AppTheme().bodyMedium.copyWith(
-                color: AppColors.onSurfaceVariant,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ClayButton(
-              text: 'Refresh',
-              icon: Icons.refresh,
-              onPressed: onRefresh,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRefresh;
-
-  const _ErrorState({required this.message, required this.onRefresh});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 64,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Terjadi Kesalahan',
-              style: AppTheme().headlineSmall.copyWith(
-                color: AppColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: AppTheme().bodyMedium.copyWith(
-                color: AppColors.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ClayButton(
-              text: 'Coba Lagi',
-              icon: Icons.refresh,
-              onPressed: onRefresh,
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -62,7 +62,10 @@ class _NotificationPageState extends State<NotificationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Semua notifikasi ditandai sudah dibaca'),
+            content: Text(
+              'Semua notifikasi ditandai sudah dibaca',
+              style: const TextStyle(color: AppColors.onBackground),
+            ),
             backgroundColor: AppColors.successAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -166,43 +169,13 @@ class _NotificationPageState extends State<NotificationPage> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            )
+          ? const FullPageLoading(message: 'Memuat notifikasi...')
           : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline_rounded,
-                          size: 48,
-                          color: AppColors.error),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Gagal memuat notifikasi',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _errorMessage!,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ClayButton(
-                        text: 'Coba Lagi',
-                        onPressed: _loadNotifications,
-                        icon: Icons.refresh_rounded,
-                      ),
-                    ],
-                  ),
+              ? EmptyStates.serverError(
+                  onRetry: _loadNotifications,
                 )
               : _notifications.isEmpty
-                  ? _buildEmpty()
+                  ? EmptyStates.noNotifications()
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                       itemCount: _notifications.length,
@@ -238,41 +211,6 @@ class _NotificationPageState extends State<NotificationPage> {
                         );
                       },
                     ),
-    );
-  }
-
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.notifications_off_outlined,
-              size: 40,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Belum ada notifikasi',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Notifikasi akan muncul di sini',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -20,7 +20,18 @@
       "Bash(flutter build *)",
       "Bash(flutter *)",
       "Bash(dart *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(xargs wc -l)",
+      "Bash(xargs ls -lh)",
+      "Bash(npm run *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(tasklist)",
+      "Bash(findstr \"node.exe\")",
+      "Bash(npx prisma *)",
+      "Bash(npm list *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(taskkill *)"
     ]
   }
 }

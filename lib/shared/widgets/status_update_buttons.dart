@@ -61,11 +61,11 @@ class StatusUpdateButtons extends StatelessWidget {
       case 'in_progress':
         return AppColors.warningAccent;
       case 'resolved':
-        return AppColors.successAccent;
+        return AppColors.tertiary;
       case 'closed':
         return AppColors.outline;
       case 'reopened':
-        return AppColors.tertiary;
+        return AppColors.error;
       default:
         return AppColors.outline;
     }

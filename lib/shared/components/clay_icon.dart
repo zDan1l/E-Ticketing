@@ -23,7 +23,22 @@ class ClayIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveBgColor = backgroundColor ?? Colors.white;
-    final effectiveIconColor = iconColor ?? AppColors.primary;
+
+    // Auto-detect appropriate icon color based on background
+    Color effectiveIconColor;
+    if (iconColor != null) {
+      effectiveIconColor = iconColor!;
+    } else if (backgroundColor != null) {
+      // If background is primary, tertiary, or similar dark color, use white
+      if (_isDarkBackground(backgroundColor!)) {
+        effectiveIconColor = AppColors.onPrimary; // White
+      } else {
+        effectiveIconColor = AppColors.primary;
+      }
+    } else {
+      effectiveIconColor = AppColors.primary;
+    }
+
     final effectiveSize = size ?? 48.0;
 
     return Tooltip(
@@ -48,6 +63,16 @@ class ClayIconButton extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Check if background is dark enough to require white text/icon
+  bool _isDarkBackground(Color color) {
+    // Primary (#3D31A3), Tertiary (#213F8E), Error (#BA1A1A), etc.
+    return color == AppColors.primary ||
+        color == AppColors.tertiary ||
+        color == AppColors.error ||
+        color == AppColors.onSurface ||
+        color.value < 0xFF800000; // Dark colors in general
   }
 }
 

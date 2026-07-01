@@ -87,51 +87,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgress(value: 0.3, size: 48, strokeWidth: 4),
-            )
+          ? const FullPageLoading(message: 'Memuat daftar pengguna...')
           : _errorMessage != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline_rounded,
-                      size: 48,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Gagal memuat pengguna',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _errorMessage!,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    ClayButton(
-                      text: 'Coba Lagi',
-                      onPressed: _loadUsers,
-                      icon: Icons.refresh_rounded,
-                    ),
-                  ],
-                ),
-              ),
+          ? EmptyStates.serverError(
+              onRetry: _loadUsers,
             )
           : Column(
               children: [

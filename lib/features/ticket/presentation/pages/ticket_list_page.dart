@@ -248,11 +248,7 @@ class _TicketListPageState extends State<TicketListPage> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            )
+          ? const FullPageLoading(message: 'Memuat tiket...')
           : Column(
               children: [
                 // Search bar with StyledInput
@@ -359,7 +355,7 @@ class _TicketListPageState extends State<TicketListPage> {
                 // Tickets list
                 Expanded(
                   child: tickets.isEmpty
-                      ? _EmptyState(onRefresh: _loadTickets)
+                      ? _buildEmptyState()
                       : ListView.builder(
                           padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
                           itemCount: tickets.length,
@@ -384,63 +380,33 @@ class _TicketListPageState extends State<TicketListPage> {
             ),
     );
   }
-}
 
-class _EmptyState extends StatelessWidget {
-  final VoidCallback onRefresh;
+  Widget _buildEmptyState() {
+    // Check if filtering is active
+    final isFiltering = _selectedFilter != 'all' ||
+        _selectedCategory != 'all' ||
+        _selectedPriority != 'all' ||
+        _searchQuery.isNotEmpty;
 
-  const _EmptyState({required this.onRefresh});
+    if (isFiltering) {
+      return EmptyStates.noSearchResults(
+        onClear: () {
+          setState(() {
+            _selectedFilter = 'all';
+            _selectedCategory = 'all';
+            _selectedPriority = 'all';
+            _searchQuery = '';
+            _searchController.clear();
+          });
+          _loadTickets();
+        },
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.primary,
-                  width: 2,
-                ),
-              ),
-              child: const Icon(
-                Icons.inbox_rounded,
-                size: 48,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Tidak ada tiket',
-              style: AppTheme().headlineSmall.copyWith(
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Tiket dengan filter ini belum tersedia',
-              style: AppTheme().bodyMedium.copyWith(
-                color: AppColors.onSurfaceVariant,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ClayButton(
-              text: 'Refresh',
-              icon: Icons.refresh,
-              onPressed: onRefresh,
-            ),
-          ],
-        ),
-      ),
+    return EmptyStates.noTickets(
+      onCreate: () {
+        Navigator.of(context).pushNamed('/create-ticket');
+      },
     );
   }
 }
@@ -640,24 +606,24 @@ class _IconCount extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = icon == Icons.chat_bubble_outline_rounded
-        ? AppColors.primary
-        : AppColors.tertiary;
+    final Color bgColor = icon == Icons.chat_bubble_outline_rounded
+        ? AppColors.primaryContainer
+        : AppColors.tertiaryContainer;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color == AppColors.primary ? AppColors.primaryContainer : AppColors.tertiaryContainer,
+        color: bgColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: color),
+          Icon(icon, size: 14, color: AppColors.onPrimary),
           const SizedBox(width: 4),
           Text(
             '$count',
             style: AppTheme().labelSmall.copyWith(
-              color: color,
+              color: AppColors.onPrimary,
             ),
           ),
         ],

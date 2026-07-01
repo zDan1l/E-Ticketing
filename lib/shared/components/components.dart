@@ -24,3 +24,7 @@ export 'clay_icon.dart';
 
 // Progress & Stats
 export 'progress.dart';
+
+// Enhanced Components (New)
+export 'enhanced_loading.dart';
+export 'enhanced_empty_state.dart';
