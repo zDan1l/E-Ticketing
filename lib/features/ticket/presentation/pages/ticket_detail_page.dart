@@ -9,7 +9,7 @@ import '../../../../services/auth_service.dart';
 import '../../../../services/ticket_service.dart';
 import '../../../../services/attachment_service.dart';
 import '../../../../shared/widgets/assign_ticket_dialog.dart';
-import '../../../../shared/widgets/status_update_buttons.dart';
+import '../../../../shared/widgets/automatic_status_actions.dart';
 import '../../../../shared/components/components.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
 
@@ -195,25 +195,71 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     super.dispose();
   }
 
-  void _handleStatusUpdate(String newStatus) async {
-    final success =
-        await _ticketService.updateTicketStatus(_ticket.id, newStatus);
+  void _handleAutomaticAction() async {
+    final authService = AuthService();
+    final currentUser = authService.currentUser;
+
+    // Only helpdesk can perform automatic actions
+    if (currentUser?.role != UserRole.helpdesk) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Hanya helpdesk yang dapat melakukan aksi ini'),
+            backgroundColor: AppColors.error,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Check if ticket is assigned to current user
+    if (_ticket.assigneeId != currentUser?.id) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tiket ini tidak ditugaskan kepada Anda'),
+            backgroundColor: AppColors.error,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Only allow finish action for In Progress tickets
+    if (!_ticket.isInProgress) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Hanya tiket dengan status In Progress yang dapat diselesaikan'),
+            backgroundColor: AppColors.error,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Finish ticket action
+    final success = await _ticketService.finishTicket(_ticket.id);
 
     if (success) {
       setState(() {
         _ticket = _ticket.copyWith(
-          status: newStatus,
+          status: 'closed',
           updatedAt: DateTime.now(),
         );
       });
+
       DashboardPage.dashboardKey.currentState?.refreshDashboard();
+      await _loadTimelineAndComments();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Status berhasil diupdate ke ${_statusLabel(newStatus)}'),
-            backgroundColor: AppColors.success,
+          const SnackBar(
+            content: Text('Tiket berhasil diselesaikan'),
+            backgroundColor: AppColors.successAccent,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -222,7 +268,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Gagal mengupdate status'),
+            content: Text('Gagal menyelesaikan tiket'),
             backgroundColor: AppColors.error,
             duration: Duration(seconds: 2),
           ),
@@ -397,9 +443,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     switch (status) {
       case 'open':       return TicketStatus.open;
       case 'in_progress':return TicketStatus.inProgress;
-      case 'resolved':   return TicketStatus.resolved;
       case 'closed':     return TicketStatus.closed;
-      case 'reopened':   return TicketStatus.reopened;
       default:           return TicketStatus.open;
     }
   }
@@ -408,9 +452,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     switch (status) {
       case 'open':        return 'Open';
       case 'in_progress': return 'In Progress';
-      case 'resolved':    return 'Resolved';
       case 'closed':      return 'Closed';
-      case 'reopened':    return 'Reopened';
       default:            return status;
     }
   }
@@ -419,9 +461,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     switch (status) {
       case 'open':        return AppColors.primary;
       case 'in_progress': return AppColors.warningAccent;
-      case 'resolved':    return AppColors.successAccent;
-      case 'closed':      return AppColors.onSurfaceVariant;
-      case 'reopened':    return AppColors.tertiary;
+      case 'closed':      return AppColors.successAccent;
       default:            return AppColors.primary;
     }
   }
@@ -700,13 +740,13 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // ── Status update buttons ─────────────────────────────────
+                  // ── Automatic status actions ─────────────────────────────────
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 20),
-                    child: StatusUpdateButtons(
-                      currentStatus: _ticket.status,
-                      onStatusUpdate: _handleStatusUpdate,
+                    child: AutomaticStatusActions(
+                      ticket: _ticket,
+                      onActionComplete: _handleAutomaticAction,
                     ),
                   ),
                   const SizedBox(height: 10),

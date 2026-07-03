@@ -31,7 +31,10 @@
       "Bash(npx prisma *)",
       "Bash(npm list *)",
       "Bash(taskkill /F /IM node.exe)",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(psql \"postgresql://hono:hono@localhost:5445/hono\" -f prisma/migrations/cleanup_ticket_status.sql)",
+      "Bash(psql \"postgresql://hono:hono@localhost:5445/hono\" -f prisma/migrations/simple_cleanup.sql)",
+      "Bash(psql \"postgresql://hono:hono@localhost:5445/hono\" -f prisma/migrations/final_cleanup.sql)"
     ]
   }
 }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../models/role_model.dart';
+import '../../../../models/ticket_model.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/user_api_service.dart';
+import '../../../../services/ticket_service.dart';
 import '../../../../shared/components/components.dart';
 
 class AdminDashboardPage extends StatefulWidget {
@@ -16,10 +18,12 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final AuthService _authService = AuthService();
   final UserApiService _userApiService = UserApiService();
+  final TicketService _ticketService = TicketService();
 
   bool _isLoading = true;
   Map<String, dynamic>? _dashboardStats;
   String? _errorMessage;
+  List<TicketModel> _latestTickets = [];
 
   @override
   void initState() {
@@ -34,11 +38,19 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     });
 
     try {
-      final stats = await _userApiService.getDashboardStats();
+      final results = await Future.wait([
+        _userApiService.getDashboardStats(),
+        _ticketService.getTickets(userRole: UserRole.admin, status: 'open', limit: 5),
+      ]);
 
       if (mounted) {
+        final stats = results[0];
+        final ticketsResponse = results[1] as Map<String, dynamic>;
+        final tickets = ticketsResponse['tickets'] as List<TicketModel>? ?? [];
+
         setState(() {
-          _dashboardStats = stats;
+          _dashboardStats = stats is Map<String, dynamic> ? stats : null;
+          _latestTickets = tickets;
           _isLoading = false;
         });
       }
@@ -47,6 +59,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         setState(() {
           _errorMessage = 'Gagal memuat statistik: ${e.toString()}';
           _isLoading = false;
+          _latestTickets = [];
         });
       }
     }
@@ -140,6 +153,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           const SizedBox(height: 12),
                           _buildSystemStats(),
                           const SizedBox(height: 32),
+
+                          // Latest Tickets Section
+                          _buildSectionTitle('Tiket Terbaru'),
+                          const SizedBox(height: 12),
+                          _buildLatestTickets(),
+                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
@@ -161,7 +180,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final total = tickets['total'] as int? ?? 0;
     final open = tickets['open'] as int? ?? 0;
     final inProgress = tickets['in_progress'] as int? ?? 0;
-    final resolved = tickets['resolved'] as int? ?? 0;
     final closed = tickets['closed'] as int? ?? 0;
 
     return Column(
@@ -201,23 +219,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatCard(
-                title: 'Resolved',
-                value: '$resolved',
-                color: AppColors.statusResolved,
-                icon: Icons.check_circle_outline_rounded,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
                 title: 'Closed',
                 value: '$closed',
                 color: AppColors.statusClosed,
-                icon: Icons.format_list_numbered_rounded,
+                icon: Icons.check_circle_rounded,
               ),
             ),
           ],
@@ -341,6 +346,202 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildLatestTickets() {
+    if (_latestTickets.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.outlineVariant,
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.inbox_rounded,
+                size: 48,
+                color: AppColors.onSurfaceVariant,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Belum ada tiket',
+                style: AppTheme().bodyMedium.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _latestTickets.map((ticket) => _LatestTicketCard(ticket: ticket)).toList(),
+    );
+  }
+}
+
+class _LatestTicketCard extends StatelessWidget {
+  final TicketModel ticket;
+
+  const _LatestTicketCard({required this.ticket});
+
+  TicketStatus _ticketStatus(String status) {
+    switch (status) {
+      case 'open':
+        return TicketStatus.open;
+      case 'in_progress':
+        return TicketStatus.inProgress;
+      case 'closed':
+        return TicketStatus.closed;
+      default:
+        return TicketStatus.open;
+    }
+  }
+
+  PriorityLevel _priorityLevel(String priority) {
+    switch (priority) {
+      case 'low':
+        return PriorityLevel.low;
+      case 'medium':
+        return PriorityLevel.medium;
+      case 'high':
+        return PriorityLevel.high;
+      case 'critical':
+        return PriorityLevel.critical;
+      default:
+        return PriorityLevel.low;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'open':
+        return 'Open';
+      case 'in_progress':
+        return 'In Progress';
+      case 'closed':
+        return 'Closed';
+      default:
+        return status;
+    }
+  }
+
+  String _categoryLabel(String cat) {
+    switch (cat) {
+      case 'hardware':
+        return '🖥️ Hardware';
+      case 'software':
+        return '💿 Software';
+      case 'network':
+        return '🌐 Network';
+      case 'other':
+        return '📋 Lainnya';
+      default:
+        return cat;
+    }
+  }
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m lalu';
+    if (diff.inHours < 24) return '${diff.inHours}j lalu';
+    return '${diff.inDays}h lalu';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushNamed(
+          '/ticket-detail',
+          arguments: ticket,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.outlineVariant,
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                PriorityBadge(
+                  text: ticket.priority.toUpperCase(),
+                  priority: _priorityLevel(ticket.priority),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  ticket.ticketNumber,
+                  style: AppTheme().labelSmall.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const Spacer(),
+                StatusBadge(
+                  text: _statusLabel(ticket.status),
+                  status: _ticketStatus(ticket.status),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              ticket.title,
+              style: AppTheme().bodyLarge.copyWith(
+                color: AppColors.onSurface,
+                height: 1.3,
+                letterSpacing: -0.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _categoryLabel(ticket.category),
+              style: AppTheme().bodyMedium.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.person_rounded, size: 16, color: AppColors.onSurfaceVariant),
+                const SizedBox(width: 4),
+                Text(
+                  ticket.reporterName,
+                  style: AppTheme().bodyMedium.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _timeAgo(ticket.createdAt),
+                  style: AppTheme().labelSmall.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

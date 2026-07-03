@@ -15,9 +15,6 @@ import '../../../../services/user_api_service.dart';
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
-  static final GlobalKey<_DashboardPageState> dashboardKey =
-      GlobalKey<_DashboardPageState>();
-
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
@@ -33,8 +30,6 @@ class _DashboardPageState extends State<DashboardPage>
   List<TicketModel> _recentTickets = [];
   String? _errorMessage;
   final TextEditingController _searchController = TextEditingController();
-
-  Map<String, dynamic>? _adminStats;
 
   @override
   void initState() {
@@ -70,9 +65,18 @@ class _DashboardPageState extends State<DashboardPage>
     try {
       final userRole = _authService.currentUserRole;
 
+      // Determine ticket limit based on user role
+      // - User biasa: lihat semua tiket mereka sendiri (10 tiket terbaru)
+      // - Helpdesk: lihat tiket yang di-assign ke mereka (5 tiket terbaru)
+      // - Admin: tidak menggunakan dashboard ini (punya admin dashboard sendiri)
+      final ticketLimit = userRole == UserRole.user ? 10 : 5;
+
       final futures = <Future>[
         _ticketService.getTicketStats(userRole: userRole),
-        _ticketService.getTickets(userRole: userRole),
+        _ticketService.getTickets(
+          userRole: userRole,
+          limit: ticketLimit,
+        ),
       ];
 
       if (userRole == UserRole.admin) {
@@ -87,10 +91,8 @@ class _DashboardPageState extends State<DashboardPage>
 
         setState(() {
           _stats = results[0] as Map<String, int>;
-          _recentTickets = tickets.take(3).toList();
-          if (userRole == UserRole.admin && results.length > 2) {
-            _adminStats = results[2] as Map<String, dynamic>?;
-          }
+          // Use appropriate ticket limit based on user role
+          _recentTickets = tickets;
           _isLoading = false;
         });
       }
@@ -99,7 +101,7 @@ class _DashboardPageState extends State<DashboardPage>
         setState(() {
           _errorMessage = 'Gagal memuat data: ${e.toString()}';
           _isLoading = false;
-          _stats = {'open': 0, 'in_progress': 0, 'resolved': 0, 'closed': 0};
+          _stats = {'open': 0, 'in_progress': 0, 'closed': 0};
           _recentTickets = [];
         });
       }
@@ -120,12 +122,11 @@ class _DashboardPageState extends State<DashboardPage>
     }
 
     final stats =
-        _stats ?? {'open': 0, 'in_progress': 0, 'resolved': 0, 'closed': 0};
+        _stats ?? {'open': 0, 'in_progress': 0, 'closed': 0};
     final recentTickets = _recentTickets;
     final totalTickets =
         (stats['open'] ?? 0) +
         (stats['in_progress'] ?? 0) +
-        (stats['resolved'] ?? 0) +
         (stats['closed'] ?? 0);
 
     return Scaffold(
@@ -345,13 +346,13 @@ class _DashboardPageState extends State<DashboardPage>
                     BentoCard(
                       label: 'Pencapaian Target Dukungan',
                       value:
-                          '${stats['resolved'] ?? 0} / $totalTickets Tiket Selesai',
+                          '${stats['closed'] ?? 0} / $totalTickets Tiket Selesai',
                       icon: Icons.confirmation_number_outlined,
                       backgroundColor: AppColors.primary, //
                       textColor: AppColors.onPrimary, //
                       footer: ProgressBar(
                         value: totalTickets > 0
-                            ? (stats['resolved'] ?? 0) / totalTickets
+                            ? (stats['closed'] ?? 0) / totalTickets
                             : 0.0,
                         progressColor: AppColors.onPrimary,
                         backgroundColor: AppColors.surfaceContainerHighest,
@@ -386,10 +387,10 @@ class _DashboardPageState extends State<DashboardPage>
                       children: [
                         Expanded(
                           child: BentoCard(
-                            label: 'RESOLVED',
-                            value: '${stats['resolved'] ?? 0}',
+                            label: 'CLOSED',
+                            value: '${stats['closed'] ?? 0}',
                             icon: Icons.check_circle_outline_rounded,
-                            backgroundColor: AppColors.statusResolved, //
+                            backgroundColor: AppColors.statusClosed, //
                             textColor: AppColors.onSurface, //
                           ),
                         ),
@@ -745,12 +746,8 @@ class _RecentTicketCard extends StatelessWidget {
         return TicketStatus.open;
       case 'in_progress':
         return TicketStatus.inProgress;
-      case 'resolved':
-        return TicketStatus.resolved;
       case 'closed':
         return TicketStatus.closed;
-      case 'reopened':
-        return TicketStatus.reopened;
       default:
         return TicketStatus.open;
     }
@@ -800,9 +797,8 @@ class _RecentTicketCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            ticket.description ??
-                'Tidak ada ringkasan deskripsi masalah yang diberikan.',
-            style: Theme.of(context).textTheme.bodyMedium, //
+            ticket.description,
+            style: Theme.of(context).textTheme.bodyMedium,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

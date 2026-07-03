@@ -144,7 +144,7 @@ class TicketService {
     }
   }
 
-  /// Update ticket status
+  /// Update ticket status (restricted usage - for special cases)
   Future<bool> updateTicketStatus(String ticketId, String newStatus) async {
     try {
       final response = await _httpClient.patch(
@@ -155,6 +155,38 @@ class TicketService {
       return response['success'] == true;
     } catch (e) {
       print('Error updating ticket status: $e');
+      return false;
+    }
+  }
+
+  /// Accept ticket assignment (helpdesk only)
+  /// Changes status from Open to In Progress automatically
+  Future<bool> acceptTicket(String ticketId) async {
+    try {
+      final response = await _httpClient.patch(
+        '${AppConfig.ticketsPath}/$ticketId/accept',
+      );
+
+      print('✅ TicketService: Ticket accepted - $ticketId');
+      return response['success'] == true;
+    } catch (e) {
+      print('❌ TicketService: Error accepting ticket: $e');
+      return false;
+    }
+  }
+
+  /// Finish ticket (helpdesk only)
+  /// Changes status from In Progress to Closed automatically
+  Future<bool> finishTicket(String ticketId) async {
+    try {
+      final response = await _httpClient.patch(
+        '${AppConfig.ticketsPath}/$ticketId/finish',
+      );
+
+      print('✅ TicketService: Ticket finished - $ticketId');
+      return response['success'] == true;
+    } catch (e) {
+      print('❌ TicketService: Error finishing ticket: $e');
       return false;
     }
   }
@@ -200,7 +232,6 @@ class TicketService {
       return {
         'open': 0,
         'in_progress': 0,
-        'resolved': 0,
         'closed': 0,
       };
     } catch (e) {
@@ -208,7 +239,6 @@ class TicketService {
       return {
         'open': 0,
         'in_progress': 0,
-        'resolved': 0,
         'closed': 0,
       };
     }

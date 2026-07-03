@@ -23,7 +23,6 @@ class _TicketListPageState extends State<TicketListPage> {
     {'key': 'all', 'label': 'Semua'},
     {'key': 'open', 'label': 'Open'},
     {'key': 'in_progress', 'label': 'In Progress'},
-    {'key': 'resolved', 'label': 'Resolved'},
     {'key': 'closed', 'label': 'Closed'},
   ];
 
@@ -423,12 +422,8 @@ class _TicketCard extends StatelessWidget {
         return TicketStatus.open;
       case 'in_progress':
         return TicketStatus.inProgress;
-      case 'resolved':
-        return TicketStatus.resolved;
       case 'closed':
         return TicketStatus.closed;
-      case 'reopened':
-        return TicketStatus.reopened;
       default:
         return TicketStatus.open;
     }
@@ -455,12 +450,8 @@ class _TicketCard extends StatelessWidget {
         return 'Open';
       case 'in_progress':
         return 'In Progress';
-      case 'resolved':
-        return 'Resolved';
       case 'closed':
         return 'Closed';
-      case 'reopened':
-        return 'Reopened';
       default:
         return status;
     }

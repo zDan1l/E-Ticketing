@@ -92,17 +92,9 @@ class StatusBadge extends StatelessWidget {
         bgColor = AppColors.secondaryContainer;
         textColor = AppColors.onSecondaryContainer;
         break;
-      case TicketStatus.resolved:
+      case TicketStatus.closed:
         bgColor = AppColors.tertiaryContainer;
         textColor = AppColors.onTertiaryContainer;
-        break;
-      case TicketStatus.closed:
-        bgColor = AppColors.surfaceContainerHigh;
-        textColor = AppColors.onSurfaceVariant;
-        break;
-      case TicketStatus.reopened:
-        bgColor = AppColors.tertiaryContainer;
-        textColor = AppColors.onTertiary;
         break;
     }
 
@@ -126,7 +118,7 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-enum TicketStatus { open, inProgress, resolved, closed, reopened }
+enum TicketStatus { open, inProgress, closed }
 
 /// Flat Custom Badge for dynamic assignments
 class CustomBadge extends StatelessWidget {

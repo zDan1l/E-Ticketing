@@ -40,9 +40,7 @@ class TicketModel {
   bool get isAssigned => assigneeId != null;
   bool get isOpen => status == 'open';
   bool get isInProgress => status == 'in_progress';
-  bool get isResolved => status == 'resolved';
   bool get isClosed => status == 'closed';
-  bool get isReopened => status == 'reopened';
 
   // JSON serialization for API integration
   Map<String, dynamic> toJson() {

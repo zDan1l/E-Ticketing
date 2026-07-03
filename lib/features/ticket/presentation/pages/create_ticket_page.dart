@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/ticket_service.dart';
@@ -19,7 +18,6 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   String? _selectedCategory;
-  String? _selectedPriority;
   bool _isLoading = false;
   final List<XFile> _attachedFiles = [];
   final Map<String, Uint8List> _fileBytesCache = {};
@@ -35,35 +33,23 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
     {'value': 'other', 'label': 'Lainnya', 'icon': Icons.more_horiz_rounded},
   ];
 
-  final _priorities = [
-    {'value': 'low', 'label': 'Low', 'color': AppColors.priorityLow},
-    {'value': 'medium', 'label': 'Medium', 'color': AppColors.priorityMedium},
-    {'value': 'high', 'label': 'High', 'color': AppColors.priorityHigh},
-    {
-      'value': 'critical',
-      'label': 'Critical',
-      'color': AppColors.priorityCritical
-    },
-  ];
-
   void _handleSubmit() async {
     print('🎫 Submit pressed - Starting validation');
     if (_formKey.currentState!.validate() &&
-        _selectedCategory != null &&
-        _selectedPriority != null) {
+        _selectedCategory != null) {
       print('✅ Form validation passed');
       setState(() => _isLoading = true);
 
       print('🎫 Creating ticket with data:');
       print('  - Title: ${_titleController.text.trim()}');
       print('  - Category: $_selectedCategory');
-      print('  - Priority: $_selectedPriority');
+      print('  - Priority: medium (default)');
 
-      // Create ticket first
+      // Create ticket first with default priority
       final ticket = await _ticketService.createTicket(
         title: _titleController.text.trim(),
         category: _selectedCategory!,
-        priority: _selectedPriority!,
+        priority: 'medium', // Default priority
         description: _descriptionController.text.trim(),
       );
 
@@ -123,10 +109,10 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
       }
     } else {
       print('❌ Form validation failed');
-      if (_selectedCategory == null || _selectedPriority == null) {
+      if (_selectedCategory == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Mohon lengkapi kategori dan prioritas'),
+            content: Text('Mohon lengkapi kategori'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -329,56 +315,6 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
                 ),
               ),
               const SizedBox(height: 12),
-              // Priority Selection
-              Container(
-                color: AppColors.surfaceContainerLowest,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Prioritas',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _priorities.map((pri) {
-                        final isSelected = _selectedPriority == pri['value'];
-                        final value = pri['value'] as String;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedPriority = value;
-                            });
-                          },
-                          child: Opacity(
-                            opacity: _selectedPriority == null || isSelected ? 1.0 : 0.4,
-                            child: Container(
-                              decoration: isSelected
-                                  ? BoxDecoration(
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusFull + 2),
-                                      border: Border.all(
-                                        color: AppColors.primary,
-                                        width: 2,
-                                      ),
-                                    )
-                                  : null,
-                              padding: isSelected ? const EdgeInsets.all(2) : EdgeInsets.zero,
-                              child: PriorityBadge(
-                                text: pri['label'] as String,
-                                priority: _getPriorityLevel(value),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
               // File Attachments
               Container(
                 color: AppColors.surfaceContainerLowest,
@@ -497,20 +433,5 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
         ),
       ),
     );
-  }
-
-  PriorityLevel _getPriorityLevel(String value) {
-    switch (value) {
-      case 'low':
-        return PriorityLevel.low;
-      case 'medium':
-        return PriorityLevel.medium;
-      case 'high':
-        return PriorityLevel.high;
-      case 'critical':
-        return PriorityLevel.critical;
-      default:
-        return PriorityLevel.low;
-    }
   }
 }

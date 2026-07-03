@@ -58,18 +58,23 @@ class UserPermission {
   }
 
   static bool canUpdateStatusTo(UserRole role, String newStatus, String currentStatus) {
-    // Users can only reopen closed/resolved tickets
+    // Users cannot manually update ticket status in the new workflow
     if (role == UserRole.user) {
-      return (currentStatus == 'closed' || currentStatus == 'resolved') && newStatus == 'reopened';
+      return false;
     }
 
-    // Helpdesk and admin can change to most statuses
+    // Helpdesk and admin have limited status update capabilities
+    // based on the backend automatic workflow
     if (role == UserRole.helpdesk || role == UserRole.admin) {
-      // Can't go from closed back to other statuses except reopened
-      if (currentStatus == 'closed' && newStatus != 'reopened') {
-        return false;
+      // Admin can manually update for special cases
+      if (role == UserRole.admin) {
+        return true;
       }
-      return true;
+
+      // Helpdesk can only update open -> in_progress (accept workflow)
+      if (role == UserRole.helpdesk) {
+        return currentStatus == 'open' && newStatus == 'in_progress';
+      }
     }
 
     return false;
