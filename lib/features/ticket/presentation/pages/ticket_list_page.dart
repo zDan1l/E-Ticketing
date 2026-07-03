@@ -229,6 +229,7 @@ class _TicketListPageState extends State<TicketListPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        titleSpacing: 20,
         title: Text(
           'Tiket Saya',
           style: AppTheme().headlineSmall,
@@ -244,6 +245,7 @@ class _TicketListPageState extends State<TicketListPage> {
             onPressed: _loadTickets,
             icon: const Icon(Icons.refresh_rounded, size: 22),
           ),
+          const SizedBox(width: 12),
         ],
       ),
       body: _isLoading
@@ -481,105 +483,133 @@ class _TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return StyledCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Priority dot + ticket number
-              PriorityBadge(
-                text: ticket.priority.toUpperCase(),
-                priority: _priorityLevel(ticket.priority),
+              Row(
+                children: [
+                  PriorityBadge(
+                    text: ticket.priority.toUpperCase(),
+                    priority: _priorityLevel(ticket.priority),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'TKT-${ticket.ticketNumber}',
+                      style: const TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              Text(
-                ticket.ticketNumber,
-                style: AppTheme().labelSmall.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const Spacer(),
               StatusBadge(
                 text: _statusLabel(ticket.status),
                 status: _ticketStatus(ticket.status),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          // Title
+          const SizedBox(height: 16),
           Text(
             ticket.title,
-            style: AppTheme().bodyLarge.copyWith(
-              color: AppColors.onSurface,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppColors.onSurface,
               height: 1.3,
-              letterSpacing: -0.2,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 10),
-          // Category
-          Text(
-            _categoryLabel(ticket.category),
-            style: AppTheme().bodyMedium.copyWith(
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Divider
-          Container(
-            height: 1,
-            decoration: const BoxDecoration(
-              color: AppColors.outlineVariant,
-            ),
-          ),
-          const SizedBox(height: 14),
-          // Footer
+          const SizedBox(height: 8),
           Row(
             children: [
-              // Comments
+              Text(
+                _categoryLabel(ticket.category),
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white70 : AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            height: 1,
+            width: double.infinity,
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.08) 
+                : AppColors.outlineVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
               _IconCount(
                 icon: Icons.chat_bubble_outline_rounded,
                 count: ticket.commentsCount,
               ),
-              const SizedBox(width: 12),
-              // Attachments
+              const SizedBox(width: 10),
               _IconCount(
                 icon: Icons.attach_file_rounded,
                 count: ticket.attachmentsCount,
               ),
               const Spacer(),
-              // Assignee
               if (ticket.assigneeName != null) ...[
                 Container(
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    gradient: AppColors.primaryGradient,
                     shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
                   ),
                   child: Center(
                     child: Text(
                       ticket.assigneeAvatar ?? '',
-                      style: AppTheme().labelSmall.copyWith(
+                      style: const TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
               ],
-              Text(
-                _timeAgo(ticket.createdAt),
-                style: AppTheme().labelSmall.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                ),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.schedule_rounded,
+                    size: 14,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _timeAgo(ticket.createdAt),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 11),
+                  ),
+                ],
               ),
             ],
           ),
@@ -597,24 +627,29 @@ class _IconCount extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color bgColor = icon == Icons.chat_bubble_outline_rounded
-        ? AppColors.primaryContainer
-        : AppColors.tertiaryContainer;
+    final Color baseColor = const Color(0xFF6B7280);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: baseColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: baseColor.withValues(alpha: 0.15),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: AppColors.onPrimary),
+          Icon(icon, size: 14, color: baseColor),
           const SizedBox(width: 4),
           Text(
             '$count',
-            style: AppTheme().labelSmall.copyWith(
-              color: AppColors.onPrimary,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: baseColor,
             ),
           ),
         ],

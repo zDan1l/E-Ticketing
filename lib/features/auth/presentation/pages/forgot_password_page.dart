@@ -76,25 +76,28 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
-      appBar: AppBar(
-        backgroundColor: AppColors.surfaceContainerLowest,
-        elevation: 0,
-        leading: ClayIconButton(
-          icon: Icons.arrow_back_ios_new_rounded,
-          onPressed: () => Navigator.pop(context),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppColors.bgDarkGradient : AppColors.bgLightGradient,
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: SlideTransition(
-                position: _slideAnim,
-                child: _isEmailSent ? _buildSuccessState() : _buildFormState(),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: SlideTransition(
+                  position: _slideAnim,
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(24),
+                    child: _isEmailSent ? _buildSuccessState() : _buildFormState(),
+                  ),
+                ),
               ),
             ),
           ),
@@ -106,22 +109,27 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
   Widget _buildFormState() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 8),
+        Row(
+          children: [
+            ClayIconButton(
+              icon: Icons.arrow_back_ios_new_rounded,
+              onPressed: () => Navigator.pop(context),
+              size: 36,
+            ),
+            const Spacer(),
+          ],
+        ),
+        const SizedBox(height: 12),
         // Hero illustration
         Center(
           child: Container(
-            width: 120,
-            height: 120,
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.secondary.withValues(alpha: 0.15),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              boxShadow: AppColors.glowShadow,
             ),
             clipBehavior: Clip.antiAlias,
             child: Image.network(
@@ -140,20 +148,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         Text(
           'Lupa Password? 🔑',
-          style: Theme.of(context).textTheme.displayLarge,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           'Masukkan email yang terdaftar. Kami akan mengirimkan link untuk mereset password Anda.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppColors.onSurfaceVariant,
             height: 1.5,
           ),
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 28),
         Form(
           key: _formKey,
           child: Column(
@@ -175,7 +186,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                   return null;
                 },
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -188,27 +199,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           ),
         ),
         const SizedBox(height: 24),
-        // Back to login
-        Center(
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.arrow_back_rounded,
-                    size: 16, color: AppColors.primary),
-                const SizedBox(width: 6),
-                Text(
-                  'Kembali ke Login',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }

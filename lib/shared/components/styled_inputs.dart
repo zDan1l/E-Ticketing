@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_colors.dart';
 
-/// Flat Text Input Field implementation
+/// Premium Text Input Field with Focus Glow shadow animations
 class StyledInput extends StatefulWidget {
   final String? label;
   final String? hint;
@@ -53,15 +53,28 @@ class StyledInput extends StatefulWidget {
 
 class _StyledInputState extends State<StyledInput> {
   late final TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+  bool _isFocused = false;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController(text: widget.initialValue ?? '');
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (mounted) {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -70,84 +83,99 @@ class _StyledInputState extends State<StyledInput> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.label != null) ...[
           Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 6),
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               widget.label!.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-                color: AppColors.onSurfaceVariant,
+                letterSpacing: 0.8,
+                color: isDark ? Colors.white.withValues(alpha: 0.7) : AppColors.onSurfaceVariant,
               ),
             ),
           ),
         ],
-        TextFormField(
-          controller: _controller,
-          obscureText: widget.obscureText,
-          enabled: widget.enabled,
-          readOnly: widget.readOnly,
-          maxLength: widget.maxLength,
-          maxLines: widget.obscureText ? 1 : widget.maxLines,
-          minLines: widget.minLines,
-          keyboardType: widget.keyboardType,
-          validator: widget.validator,
-          onChanged: widget.onChanged,
-          textInputAction: widget.textInputAction,
-          onFieldSubmitted: widget.onSubmitted,
-          style: const TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: AppColors.onSurface,
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: _isFocused ? AppColors.glowShadow : AppColors.softShadow,
           ),
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, color: AppColors.onSurfaceVariant)
-                : null,
-            suffixIcon: widget.suffixIcon != null
-                ? IconButton(
-                    icon: Icon(widget.suffixIcon),
-                    onPressed: widget.onSuffixIconPressed,
-                    color: AppColors.onSurfaceVariant,
-                  )
-                : null,
-            filled: true,
-            fillColor: widget.backgroundColor ?? Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            // Flat flat borders matching tailwind guidelines
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12), // rounded-xl template
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error, width: 2),
-            ),
-            hintStyle: const TextStyle(
+          child: TextFormField(
+            focusNode: _focusNode,
+            controller: _controller,
+            obscureText: widget.obscureText,
+            enabled: widget.enabled,
+            readOnly: widget.readOnly,
+            maxLength: widget.maxLength,
+            maxLines: widget.obscureText ? 1 : widget.maxLines,
+            minLines: widget.minLines,
+            keyboardType: widget.keyboardType,
+            validator: widget.validator,
+            onChanged: widget.onChanged,
+            textInputAction: widget.textInputAction,
+            onFieldSubmitted: widget.onSubmitted,
+            style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
-              color: AppColors.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : AppColors.onSurface,
+            ),
+            decoration: InputDecoration(
+              hintText: widget.hint,
+              prefixIcon: widget.prefixIcon != null
+                  ? Icon(widget.prefixIcon, color: isDark ? Colors.white70 : AppColors.onSurfaceVariant, size: 20)
+                  : null,
+              suffixIcon: widget.suffixIcon != null
+                  ? IconButton(
+                      icon: Icon(widget.suffixIcon),
+                      onPressed: widget.onSuffixIconPressed,
+                      color: isDark ? Colors.white70 : AppColors.onSurfaceVariant,
+                      iconSize: 20,
+                    )
+                  : null,
+              filled: true,
+              fillColor: widget.backgroundColor ?? 
+                  (isDark ? const Color(0xFF2E2E2E) : Colors.white),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.2) : AppColors.outlineVariant,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.2) : AppColors.outlineVariant,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.error),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.error, width: 2),
+              ),
+              hintStyle: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 14,
+                color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -156,7 +184,7 @@ class _StyledInputState extends State<StyledInput> {
   }
 }
 
-/// Flat Menu Dropdown Selector
+/// Premium Dropdown selector card
 class StyledDropdown<T> extends StatelessWidget {
   final String? label;
   final String? hint;
@@ -179,73 +207,85 @@ class StyledDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         if (label != null) ...[
           Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 6),
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               label!.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-                color: AppColors.onSurfaceVariant,
+                letterSpacing: 0.8,
+                color: isDark ? Colors.white.withValues(alpha: 0.7) : AppColors.onSurfaceVariant,
               ),
             ),
           ),
         ],
-        DropdownButtonFormField<T>(
-          value: value,
-          items: items,
-          onChanged: onChanged,
-          validator: validator,
-          icon: const Icon(Icons.expand_more, color: AppColors.onSurfaceVariant),
-          dropdownColor: Colors.white,
-          elevation: 0, // Kills standard system drop layout shadow profiles
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppColors.softShadow,
+          ),
+          child: DropdownButtonFormField<T>(
+            value: value,
+            items: items,
+            onChanged: onChanged,
+            validator: validator,
+            icon: const Icon(Icons.expand_more_rounded, color: AppColors.onSurfaceVariant),
+            dropdownColor: isDark ? const Color(0xFF2E2E2E) : Colors.white,
+            elevation: 4,
+            decoration: InputDecoration(
+              hintText: hint,
+              filled: true,
+              fillColor: isDark ? const Color(0xFF2E2E2E) : Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.2) : AppColors.outlineVariant,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.2) : AppColors.outlineVariant,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.error),
+              ),
+              hintStyle: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 14,
+                color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.onSurfaceVariant,
+              ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.outlineVariant),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error),
-            ),
-            hintStyle: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
-              color: AppColors.onSurfaceVariant,
+              color: isDark ? Colors.white : AppColors.onSurface,
             ),
+            borderRadius: BorderRadius.circular(16),
           ),
-          style: const TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 14,
-            color: AppColors.onSurface,
-          ),
-          borderRadius: BorderRadius.circular(12),
         ),
       ],
     );
   }
 }
 
-/// Flat Dashed border-style File Upload Terminal Area
+/// Premium upload area card with subtle gradient dashed design
 class FileUploadArea extends StatelessWidget {
   final String label;
   final String? subtitle;
@@ -262,51 +302,60 @@ class FileUploadArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(12),
+          color: isDark ? const Color(0xFF1E1E2F).withValues(alpha: 0.5) : AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.outlineVariant,
+            color: AppColors.primary.withValues(alpha: 0.25),
             width: 2,
-            // Solid configuration layout over structural native systems
-            strokeAlign: BorderSide.strokeAlignInside,
+            style: BorderStyle.solid, // Simulated dashed border using simple solid tint
           ),
+          boxShadow: AppColors.softShadow,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              icon ?? Icons.upload_file,
-              size: 48,
-              color: AppColors.outline,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon ?? Icons.cloud_upload_outlined,
+                size: 32,
+                color: AppColors.primary,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Text(
               label,
               style: const TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: AppColors.onSurface,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
               ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 subtitle!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.onSurfaceVariant,
+                  color: isDark ? Colors.white.withValues(alpha: 0.5) : AppColors.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),

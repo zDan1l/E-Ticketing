@@ -94,184 +94,194 @@ class _RegisterPageState extends State<RegisterPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
-      appBar: AppBar(
-        backgroundColor: AppColors.surfaceContainerLowest,
-        elevation: 0,
-        leading: ClayIconButton(
-          icon: Icons.arrow_back_ios_new_rounded,
-          onPressed: () => Navigator.pop(context),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppColors.bgDarkGradient : AppColors.bgLightGradient,
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: SlideTransition(
-                position: _slideAnim,
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      // Hero illustration
-                      Center(
-                        child: Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.12),
-                                blurRadius: 24,
-                                offset: const Offset(0, 8),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: SlideTransition(
+                  position: _slideAnim,
+                  child: Form(
+                    key: _formKey,
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              ClayIconButton(
+                                icon: Icons.arrow_back_ios_new_rounded,
+                                onPressed: () => Navigator.pop(context),
+                                size: 36,
                               ),
+                              const Spacer(),
                             ],
                           ),
-                          clipBehavior: Clip.antiAlias,
-                          child: Image.network(
-                            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: AppColors.primaryContainer,
-                                child: const Icon(
-                                  Icons.person_add_rounded,
-                                  size: 64,
-                                  color: AppColors.primary,
-                                ),
-                              );
-                            },
+                          const SizedBox(height: 12),
+                          // Hero illustration
+                          Center(
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: AppColors.glowShadow,
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Image.network(
+                                'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: AppColors.primaryContainer,
+                                    child: const Icon(
+                                      Icons.person_add_rounded,
+                                      size: 48,
+                                      color: AppColors.primary,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Buat Akun Baru ✨',
-                        style: Theme.of(context).textTheme.displayLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Daftar untuk mulai menggunakan layanan helpdesk',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 36),
-                      StyledInput(
-                        label: 'Nama Lengkap',
-                        hint: 'Masukkan nama lengkap',
-                        controller: _nameController,
-                        prefixIcon: Icons.person_outline_rounded,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Nama tidak boleh kosong';
-                          }
-                          if (v.length < 3) return 'Minimal 3 karakter';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      StyledInput(
-                        label: 'Email',
-                        hint: 'Masukkan email',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: Icons.email_outlined,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Email tidak boleh kosong';
-                          }
-                          if (!v.contains('@')) {
-                            return 'Format email tidak valid';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      StyledInput(
-                        label: 'Password',
-                        hint: 'Minimal 8 karakter',
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        prefixIcon: Icons.lock_outline_rounded,
-                        suffixIcon: _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        onSuffixIconPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Password tidak boleh kosong';
-                          }
-                          if (v.length < 8) {
-                            return 'Password minimal 8 karakter';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      StyledInput(
-                        label: 'Konfirmasi Password',
-                        hint: 'Ulangi password',
-                        controller: _confirmPasswordController,
-                        obscureText: _obscureConfirm,
-                        prefixIcon: Icons.lock_outline_rounded,
-                        suffixIcon: _obscureConfirm
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        onSuffixIconPressed: () {
-                          setState(() => _obscureConfirm = !_obscureConfirm);
-                        },
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Konfirmasi password tidak boleh kosong';
-                          }
-                          if (v != _passwordController.text) {
-                            return 'Password tidak sama';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ClayButton(
-                          text: _isLoading ? 'Memuat...' : 'Daftar',
-                          onPressed: _isLoading ? null : _handleRegister,
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                          const SizedBox(height: 20),
                           Text(
-                            'Sudah punya akun? ',
+                            'Buat Akun Baru ✨',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Daftar untuk mulai menggunakan layanan helpdesk',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppColors.onSurfaceVariant,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Text(
-                              'Masuk',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          const SizedBox(height: 28),
+                          StyledInput(
+                            label: 'Nama Lengkap',
+                            hint: 'Masukkan nama lengkap',
+                            controller: _nameController,
+                            prefixIcon: Icons.person_outline_rounded,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) {
+                                return 'Nama tidak boleh kosong';
+                              }
+                              if (v.length < 3) return 'Minimal 3 karakter';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          StyledInput(
+                            label: 'Email',
+                            hint: 'Masukkan email',
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            prefixIcon: Icons.email_outlined,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) {
+                                return 'Email tidak boleh kosong';
+                              }
+                              if (!v.contains('@')) {
+                                return 'Format email tidak valid';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          StyledInput(
+                            label: 'Password',
+                            hint: 'Minimal 8 karakter',
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            prefixIcon: Icons.lock_outline_rounded,
+                            suffixIcon: _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            onSuffixIconPressed: () {
+                              setState(() => _obscurePassword = !_obscurePassword);
+                            },
+                            validator: (v) {
+                              if (v == null || v.isEmpty) {
+                                return 'Password tidak boleh kosong';
+                              }
+                              if (v.length < 8) {
+                                return 'Password minimal 8 karakter';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          StyledInput(
+                            label: 'Konfirmasi Password',
+                            hint: 'Ulangi password',
+                            controller: _confirmPasswordController,
+                            obscureText: _obscureConfirm,
+                            prefixIcon: Icons.lock_outline_rounded,
+                            suffixIcon: _obscureConfirm
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            onSuffixIconPressed: () {
+                              setState(() => _obscureConfirm = !_obscureConfirm);
+                            },
+                            validator: (v) {
+                              if (v == null || v.isEmpty) {
+                                return 'Konfirmasi password tidak boleh kosong';
+                              }
+                              if (v != _passwordController.text) {
+                                return 'Password tidak sama';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 28),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ClayButton(
+                              text: _isLoading ? 'Memuat...' : 'Daftar',
+                              onPressed: _isLoading ? null : _handleRegister,
                             ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Sudah punya akun? ',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: Text(
+                                  'Masuk',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
-                    ],
+                    ),
                   ),
                 ),
               ),

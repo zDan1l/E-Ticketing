@@ -111,12 +111,13 @@ class _ProfilePageState extends State<ProfilePage> {
           // Header
           SliverToBoxAdapter(
             child: Container(
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
+                boxShadow: AppColors.glowShadow,
               ),
               child: SafeArea(
                 bottom: false,
@@ -131,6 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             'Profil',
                             style: AppTheme().headlineMedium.copyWith(
                               color: AppColors.onPrimary,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                           const Spacer(),
@@ -138,13 +140,14 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: AppColors.onPrimary.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(10),
+                              color: AppColors.onPrimary.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              Icons.settings_outlined,
+                            child: IconButton(
+                              icon: const Icon(Icons.settings_outlined, size: 20),
                               color: AppColors.onPrimary,
-                              size: 20,
+                              onPressed: () {},
+                              padding: EdgeInsets.zero,
                             ),
                           ),
                         ],
@@ -152,17 +155,23 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 24),
                       // Avatar
                       Container(
-                        width: 80,
-                        height: 80,
+                        width: 88,
+                        height: 88,
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerLowest,
                           shape: BoxShape.circle,
+                          boxShadow: AppColors.premiumShadow,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.35),
+                            width: 3,
+                          ),
                         ),
                         child: Center(
                           child: Text(
                             _authService.currentUser?.avatar ?? '?',
                             style: AppTheme().displayLarge.copyWith(
                               fontSize: 32,
+                              fontWeight: FontWeight.w800,
                               color: AppColors.primary,
                             ),
                           ),
@@ -173,28 +182,37 @@ class _ProfilePageState extends State<ProfilePage> {
                         _authService.currentUser?.name ?? 'Guest',
                         style: AppTheme().headlineMedium.copyWith(
                           color: AppColors.onPrimary,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _authService.currentUser?.email ?? '',
                         style: AppTheme().bodyMedium.copyWith(
-                          color: AppColors.onPrimary,
+                          color: AppColors.onPrimary.withValues(alpha: 0.85),
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                            horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            width: 1,
+                          ),
                         ),
                         child: Text(
-                          _authService.currentUser?.role.label ?? 'User',
-                          style: AppTheme().labelCaps.copyWith(
-                            fontSize: 12,
-                            color: AppColors.primary,
+                          _authService.currentUser?.role.label.toUpperCase() ?? 'USER',
+                          style: const TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.onPrimary,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ),
@@ -523,10 +541,18 @@ class _MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF2E2E2E) : AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.softShadow,
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withValues(alpha: 0.05) 
+              : AppColors.outlineVariant.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         children: items.asMap().entries.map((entry) {
@@ -536,7 +562,12 @@ class _MenuCard extends StatelessWidget {
             children: [
               item,
               if (idx < items.length - 1)
-                const Divider(height: 1, indent: 56, endIndent: 16),
+                Divider(
+                  height: 1, 
+                  indent: 56, 
+                  endIndent: 16,
+                  color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.outlineVariant.withValues(alpha: 0.5),
+                ),
             ],
           );
         }).toList(),
@@ -562,21 +593,27 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(10),
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: AppColors.onSurface, size: 20),
+              child: Icon(
+                icon, 
+                color: isDark ? Colors.white70 : AppColors.primary, 
+                size: 20,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -585,16 +622,22 @@ class _MenuItem extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: AppTheme().bodyLarge.copyWith(
-                      color: AppColors.onSurface,
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : AppColors.onSurface,
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: AppTheme().labelSmall.copyWith(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -604,7 +647,7 @@ class _MenuItem extends StatelessWidget {
             trailing ??
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.onSurfaceVariant,
+                  color: isDark ? Colors.white30 : AppColors.onSurfaceVariant,
                   size: 20,
                 ),
           ],

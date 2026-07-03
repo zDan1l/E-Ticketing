@@ -18,6 +18,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   String? _selectedCategory;
+  String _selectedPriority = 'medium'; // Default priority
   bool _isLoading = false;
   final List<XFile> _attachedFiles = [];
   final Map<String, Uint8List> _fileBytesCache = {};
@@ -33,53 +34,40 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
     {'value': 'other', 'label': 'Lainnya', 'icon': Icons.more_horiz_rounded},
   ];
 
+  final _priorities = [
+    {'value': 'low', 'label': 'Low', 'icon': Icons.arrow_downward_rounded},
+    {'value': 'medium', 'label': 'Medium', 'icon': Icons.swap_vert_rounded},
+    {'value': 'high', 'label': 'High', 'icon': Icons.arrow_upward_rounded},
+    {'value': 'critical', 'label': 'Critical', 'icon': Icons.gpp_maybe_rounded},
+  ];
+
   void _handleSubmit() async {
-    print('🎫 Submit pressed - Starting validation');
-    if (_formKey.currentState!.validate() &&
-        _selectedCategory != null) {
-      print('✅ Form validation passed');
+    if (_formKey.currentState!.validate() && _selectedCategory != null) {
       setState(() => _isLoading = true);
 
-      print('🎫 Creating ticket with data:');
-      print('  - Title: ${_titleController.text.trim()}');
-      print('  - Category: $_selectedCategory');
-      print('  - Priority: medium (default)');
-
-      // Create ticket first with default priority
+      // Create ticket with user-selected category and priority
       final ticket = await _ticketService.createTicket(
         title: _titleController.text.trim(),
         category: _selectedCategory!,
-        priority: 'medium', // Default priority
+        priority: _selectedPriority,
         description: _descriptionController.text.trim(),
       );
-
-      print('🎫 Ticket creation result: ${ticket != null ? "SUCCESS - ID: ${ticket.id}" : "FAILED"}');
 
       if (mounted) {
         if (ticket != null) {
           // Upload attachments if ticket was created successfully
-          print('📎 Checking attachments: ${_attachedFiles.length} files');
           if (_attachedFiles.isNotEmpty) {
-            print('📎 Starting attachment upload process...');
             int uploadedCount = 0;
             for (int i = 0; i < _attachedFiles.length; i++) {
               final file = _attachedFiles[i];
-              print('📎 Uploading file ${i + 1}/${_attachedFiles.length}: ${file.name} (${file.path})');
-
               final attachment = await _attachmentService.uploadAttachment(
                 ticket.id,
                 file,
               );
-
-              print('📎 Upload ${i + 1} result: ${attachment != null ? "SUCCESS - ID: ${attachment.id}" : "FAILED"}');
               if (attachment != null) {
                 uploadedCount++;
               }
             }
-
-            print('✅ Upload complete: $uploadedCount/${_attachedFiles.length} successful');
-          } else {
-            print('ℹ️ No attachments to upload');
           }
 
           setState(() => _isLoading = false);
@@ -100,7 +88,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
           setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Gagal membuat tiket. Silakan coba lagi.'),
+              content: const Text('Gagal membuat tiket. Silakan coba lagi.'),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
             ),
@@ -108,11 +96,10 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
         }
       }
     } else {
-      print('❌ Form validation failed');
       if (_selectedCategory == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Mohon lengkapi kategori'),
+            content: const Text('Mohon lengkapi kategori'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -211,213 +198,281 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        backgroundColor: AppColors.surfaceContainerLowest,
-        leading: ClayIconButton(
-          icon: Icons.close_rounded,
+        titleSpacing: 20,
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded, size: 24),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Buat Tiket Baru',
-          style: Theme.of(context).textTheme.titleLarge,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Plus Jakarta Sans',
+              ),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 12),
-              // Title & Description
-              Container(
-                color: AppColors.surfaceContainerLowest,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    StyledInput(
-                      label: 'Judul Tiket',
-                      hint: 'Contoh: Laptop tidak bisa konek WiFi',
-                      controller: _titleController,
-                      prefixIcon: Icons.title_rounded,
-                      maxLength: 100,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) {
-                          return 'Judul tidak boleh kosong';
-                        }
-                        if (v.trim().length < 3) {
-                          return 'Judul harus minimal 3 karakter';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    StyledInput(
-                      label: 'Deskripsi',
-                      hint: 'Jelaskan masalah Anda secara detail...',
-                      controller: _descriptionController,
-                      maxLines: 5,
-                      prefixIcon: Icons.description_outlined,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) {
-                          return 'Deskripsi tidak boleh kosong';
-                        }
-                        if (v.trim().length < 10) {
-                          return 'Deskripsi harus minimal 10 karakter';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Category Selection
-              Container(
-                color: AppColors.surfaceContainerLowest,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kategori',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _categories.map((cat) {
-                        final isSelected = _selectedCategory == cat['value'];
-                        return ChipBadge(
-                          label: cat['label'] as String,
-                          icon: cat['icon'] as IconData?,
-                          isSelected: isSelected,
-                          backgroundColor: isSelected
-                              ? AppColors.primary
-                              : AppColors.surfaceContainerLow,
-                          textColor: isSelected
-                              ? AppColors.onPrimary
-                              : AppColors.onSurfaceVariant,
-                          onTap: isSelected
-                              ? null
-                              : () {
-                                  setState(() => _selectedCategory = cat['value'] as String);
-                                },
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              // File Attachments
-              Container(
-                color: AppColors.surfaceContainerLowest,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Lampiran',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    FileUploadArea(
-                      label: 'Unggah Screenshot atau Dokumen',
-                      subtitle: 'Max 5 file, 25MB per file',
-                      onTap: _addAttachment,
-                      icon: Icons.upload_file,
-                    ),
-                    if (_attachedFiles.isNotEmpty) ...[
+              // Title & Description Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: StyledCard(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Detail Tiket',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppColors.onSurface,
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      ..._attachedFiles.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final file = entry.value;
-                        final fileName = file.name;
-                        final fileBytes = _fileBytesCache[fileName];
-                        final fileSizeKB = fileBytes != null
-                            ? (fileBytes.length / 1024).toStringAsFixed(1)
-                            : '0.0';
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: StyledCard(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: AppColors.primaryFixed,
-                                  ),
-                                  child: fileName.endsWith('.jpg') ||
-                                          fileName.endsWith('.jpeg') ||
-                                          fileName.endsWith('.png') ||
-                                          fileName.endsWith('.gif') ||
-                                          fileName.endsWith('.webp')
-                                      ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: fileBytes != null
-                                              ? Image.memory(
-                                                  fileBytes,
-                                                  fit: BoxFit.cover,
-                                                  width: 48,
-                                                  height: 48,
-                                                )
-                                              : const Icon(
-                                                  Icons.image_rounded,
-                                                  size: 24,
-                                                  color: AppColors.primary,
-                                                ),
-                                        )
-                                      : const Icon(
-                                          Icons.attach_file_rounded,
-                                          size: 24,
-                                          color: AppColors.primary,
-                                        ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        fileName,
-                                        style: Theme.of(context).textTheme.bodyMedium,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        '$fileSizeKB KB',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: AppColors.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                ClayIconButton(
-                                  icon: Icons.close_rounded,
-                                  size: 32,
-                                  onPressed: () => _removeAttachment(index),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      StyledInput(
+                        label: 'Judul Tiket',
+                        hint: 'Contoh: Laptop tidak bisa konek WiFi',
+                        controller: _titleController,
+                        prefixIcon: Icons.title_rounded,
+                        maxLength: 100,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return 'Judul tidak boleh kosong';
+                          }
+                          if (v.trim().length < 3) {
+                            return 'Judul harus minimal 3 karakter';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      StyledInput(
+                        label: 'Deskripsi',
+                        hint: 'Jelaskan masalah Anda secara detail...',
+                        controller: _descriptionController,
+                        maxLines: 5,
+                        prefixIcon: Icons.description_outlined,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return 'Deskripsi tidak boleh kosong';
+                          }
+                          if (v.trim().length < 10) {
+                            return 'Deskripsi harus minimal 10 karakter';
+                          }
+                          return null;
+                        },
+                      ),
                     ],
-                  ],
+                  ),
+                ),
+              ),
+
+              // Category Selection Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: StyledCard(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Kategori Masalah',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppColors.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _categories.map((cat) {
+                          final isSelected = _selectedCategory == cat['value'];
+                          return ChipBadge(
+                            label: cat['label'] as String,
+                            icon: cat['icon'] as IconData?,
+                            isSelected: isSelected,
+                            onTap: () {
+                              setState(() => _selectedCategory = cat['value'] as String);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Priority Selection Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: StyledCard(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tingkat Prioritas',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppColors.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _priorities.map((pri) {
+                          final isSelected = _selectedPriority == pri['value'];
+                          return ChipBadge(
+                            label: pri['label'] as String,
+                            icon: pri['icon'] as IconData?,
+                            isSelected: isSelected,
+                            onTap: () {
+                              setState(() => _selectedPriority = pri['value'] as String);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // File Attachments Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: StyledCard(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lampiran Pendukung',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppColors.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FileUploadArea(
+                        label: 'Unggah Screenshot atau Dokumen',
+                        subtitle: 'Maksimal 5 file, 25MB per file',
+                        onTap: _addAttachment,
+                        icon: Icons.upload_file_rounded,
+                      ),
+                      if (_attachedFiles.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        ..._attachedFiles.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final file = entry.value;
+                          final fileName = file.name;
+                          final fileBytes = _fileBytesCache[fileName];
+                          final fileSizeKB = fileBytes != null
+                              ? (fileBytes.length / 1024).toStringAsFixed(1)
+                              : '0.0';
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: StyledCard(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: AppColors.primary.withValues(alpha: 0.08),
+                                    ),
+                                    child: fileName.endsWith('.jpg') ||
+                                            fileName.endsWith('.jpeg') ||
+                                            fileName.endsWith('.png') ||
+                                            fileName.endsWith('.gif') ||
+                                            fileName.endsWith('.webp')
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: fileBytes != null
+                                                ? Image.memory(
+                                                    fileBytes,
+                                                    fit: BoxFit.cover,
+                                                    width: 48,
+                                                    height: 48,
+                                                  )
+                                                : const Icon(
+                                                    Icons.image_rounded,
+                                                    size: 24,
+                                                    color: AppColors.primary,
+                                                  ),
+                                          )
+                                        : const Icon(
+                                            Icons.attach_file_rounded,
+                                            size: 24,
+                                            color: AppColors.primary,
+                                          ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          fileName,
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          '$fileSizeKB KB',
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                color: AppColors.onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ClayIconButton(
+                                    icon: Icons.close_rounded,
+                                    size: 32,
+                                    onPressed: () => _removeAttachment(index),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
+
               // Submit Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import 'glass_card.dart';
 
 /// Flat Linear Progress Bar component matching style-guide.html
 class ProgressBar extends StatelessWidget {
@@ -153,29 +154,28 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBgColor = backgroundColor ?? AppColors.secondaryContainer;
-    final effectiveIconColor = iconColor ?? AppColors.onSecondaryContainer;
+    final effectiveBgColor = backgroundColor ?? AppColors.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
+    return StyledCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
+      margin: EdgeInsets.zero,
       child: Row(
         children: [
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: effectiveBgColor.withValues(alpha: 0.2),
+              color: effectiveBgColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Center(child: Icon(icon, color: effectiveIconColor)),
+            child: Center(
+              child: Icon(
+                icon,
+                color: effectiveBgColor,
+                size: 24,
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -184,21 +184,21 @@ class StatCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppColors.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.onSurfaceVariant,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
                   ),
                 ),
               ],

@@ -520,6 +520,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   Widget build(BuildContext context) {
     final timeline = _timeline;
     final comments = _comments;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -571,304 +572,306 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Status & Priority Header ──────────────────────────────
-                  Container(
-                    width: double.infinity,
-                    color: AppColors.surfaceContainerLowest,
-                    padding:
-                        const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            StatusBadge(
-                              text: _statusLabel(_ticket.status),
-                              status: _ticketStatus(_ticket.status),
-                            ),
-                            const SizedBox(width: 8),
-                            PriorityBadge(
-                              text: _priorityLabel(_ticket.priority),
-                              priority: _priorityLevel(_ticket.priority),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _ticket.title,
-                          style: AppTheme().headlineMedium.copyWith(
-                            color: AppColors.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              _categoryIcon(_ticket.category),
-                              size: 16,
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              _categoryLabel(_ticket.category),
-                              style: AppTheme().bodyMedium.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            const Icon(Icons.access_time_rounded,
-                                size: 16,
-                                color: AppColors.onSurfaceVariant),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatDate(_ticket.createdAt),
-                              style: AppTheme().bodyMedium.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // ── People ───────────────────────────────────────────────
-                  GestureDetector(
-                    onTap: () {
-                      if (_authService.currentUser?.hasPermission(
-                              UserPermission.canAssignTickets) ??
-                          false) {
-                        showAssignTicketDialog(
-                          context: context,
-                          currentAssigneeId: _ticket.assigneeId,
-                          onAssign: _handleAssign,
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      color: AppColors.surfaceContainerLowest,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: StyledCard(
                       padding: const EdgeInsets.all(20),
-                      child: Row(
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: _PersonInfo(
-                              label: 'Pelapor',
-                              name: _ticket.reporterName,
-                              avatar: _ticket.reporterAvatar,
+                          Row(
+                            children: [
+                              StatusBadge(
+                                text: _statusLabel(_ticket.status),
+                                status: _ticketStatus(_ticket.status),
+                              ),
+                              const SizedBox(width: 8),
+                              PriorityBadge(
+                                text: _priorityLabel(_ticket.priority),
+                                priority: _priorityLevel(_ticket.priority),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _ticket.title,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppColors.onSurface,
+                              height: 1.3,
                             ),
                           ),
-                          Container(
-                            width: 1,
-                            height: 40,
-                            color: AppColors.divider,
-                          ),
-                          Expanded(
-                            child: _PersonInfo(
-                              label: 'Ditangani Oleh',
-                              name: _ticket.assigneeName ??
-                                  'Belum di-assign',
-                              avatar: _ticket.assigneeAvatar,
-                              showAssignHint: _authService.currentUser
-                                      ?.hasPermission(
-                                          UserPermission.canAssignTickets) ??
-                                  false,
-                            ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Icon(
+                                _categoryIcon(_ticket.category),
+                                size: 16,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _categoryLabel(_ticket.category),
+                                style: AppTheme().bodyMedium.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Icon(Icons.access_time_rounded,
+                                  size: 16,
+                                  color: AppColors.onSurfaceVariant),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatDate(_ticket.createdAt),
+                                style: AppTheme().bodyMedium.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
 
-                  // ── Description ──────────────────────────────────────────
-                  Container(
-                    width: double.infinity,
-                    color: AppColors.surfaceContainerLowest,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Deskripsi',
-                          style: AppTheme().labelCaps.copyWith(
-                            color: AppColors.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _ticket.description,
-                          style: AppTheme().bodyMedium.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                            height: 1.6,
-                          ),
-                        ),
-                        if (_attachments.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          // Separate images from other files
-                          ..._attachments.where((a) => a.isImage).map((attachment) =>
-                              _ImageAttachmentCard(
-                                attachment: attachment,
-                                imageBytesCache: _imageBytesCache,
-                                onLoadImage: _loadImageBytes,
-                                onImageTap: _showImageDialog,
-                                onDelete: () => _showDeleteAttachmentDialog(attachment),
-                                canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
-                              ),
-                          ),
-                          // Other files (non-images)
-                          ..._attachments.where((a) => !a.isImage).map((attachment) =>
-                              _FileAttachmentCard(
-                                attachment: attachment,
-                                onDelete: () => _showDeleteAttachmentDialog(attachment),
-                                canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
-                              ),
-                          ),
-                        ] else ...[
-                          const SizedBox(height: 16),
-                          Center(
-                            child: Text(
-                              'Tidak ada lampiran',
-                              style: AppTheme().bodyMedium.copyWith(
-                                color: AppColors.onSurfaceVariant,
+                  // ── People ───────────────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (_authService.currentUser?.hasPermission(
+                                UserPermission.canAssignTickets) ??
+                            false) {
+                          showAssignTicketDialog(
+                            context: context,
+                            currentAssigneeId: _ticket.assigneeId,
+                            onAssign: _handleAssign,
+                          );
+                        }
+                      },
+                      child: StyledCard(
+                        padding: const EdgeInsets.all(20),
+                        margin: EdgeInsets.zero,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _PersonInfo(
+                                label: 'Pelapor',
+                                name: _ticket.reporterName,
+                                avatar: _ticket.reporterAvatar,
                               ),
                             ),
-                          ),
-                        ],
-                      ],
+                            Container(
+                              width: 1,
+                              height: 40,
+                              color: isDark ? Colors.white.withValues(alpha: 0.1) : AppColors.outlineVariant.withValues(alpha: 0.5),
+                            ),
+                            Expanded(
+                              child: _PersonInfo(
+                                label: 'Ditangani Oleh',
+                                name: _ticket.assigneeName ??
+                                    'Belum di-assign',
+                                avatar: _ticket.assigneeAvatar,
+                                showAssignHint: _authService.currentUser
+                                        ?.hasPermission(
+                                            UserPermission.canAssignTickets) ??
+                                    false,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+
+                  // ── Description & Attachments ─────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: StyledCard(
+                      padding: const EdgeInsets.all(20),
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Deskripsi',
+                            style: AppTheme().labelCaps.copyWith(
+                              color: isDark ? Colors.white70 : AppColors.onSurface,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _ticket.description,
+                            style: AppTheme().bodyMedium.copyWith(
+                              color: isDark ? Colors.white.withValues(alpha: 0.8) : AppColors.onSurfaceVariant,
+                              height: 1.6,
+                            ),
+                          ),
+                          if (_attachments.isNotEmpty) ...[
+                            const SizedBox(height: 20),
+                            Text(
+                              'Lampiran (${_attachments.length})',
+                              style: AppTheme().labelCaps.copyWith(
+                                color: isDark ? Colors.white70 : AppColors.onSurface,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ..._attachments.where((a) => a.isImage).map((attachment) =>
+                                _ImageAttachmentCard(
+                                  attachment: attachment,
+                                  imageBytesCache: _imageBytesCache,
+                                  onLoadImage: _loadImageBytes,
+                                  onImageTap: _showImageDialog,
+                                  onDelete: () => _showDeleteAttachmentDialog(attachment),
+                                  canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
+                                ),
+                            ),
+                            ..._attachments.where((a) => !a.isImage).map((attachment) =>
+                                _FileAttachmentCard(
+                                  attachment: attachment,
+                                  onDelete: () => _showDeleteAttachmentDialog(attachment),
+                                  canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
+                                ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
 
                   // ── Automatic status actions ─────────────────────────────────
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: AutomaticStatusActions(
                       ticket: _ticket,
                       onActionComplete: _handleAutomaticAction,
                     ),
                   ),
-                  const SizedBox(height: 10),
 
                   // ── Timeline ─────────────────────────────────────────────
-                  Container(
-                    width: double.infinity,
-                    color: AppColors.surfaceContainerLowest,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Timeline',
-                          style: AppTheme().labelCaps.copyWith(
-                            color: AppColors.onSurface,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: StyledCard(
+                      padding: const EdgeInsets.all(20),
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Timeline',
+                            style: AppTheme().labelCaps.copyWith(
+                              color: isDark ? Colors.white70 : AppColors.onSurface,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        CompactTimeline(
-                          items: timeline
-                              .map((item) => TimelineItem(
-                                    title: item.description,
-                                    description:
-                                        '${item.actorName} • '
-                                        '${_formatDate(item.createdAt)}',
-                                    dotColor:
-                                        _statusColor(item.status),
-                                  ))
-                              .toList(),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          CompactTimeline(
+                            items: timeline
+                                .map((item) => TimelineItem(
+                                      title: item.description,
+                                      description:
+                                          '${item.actorName} • '
+                                          '${_formatDate(item.createdAt)}',
+                                      dotColor:
+                                          _statusColor(item.status),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 10),
 
                   // ── Comments ─────────────────────────────────────────────
-                  Container(
-                    width: double.infinity,
-                    color: AppColors.surfaceContainerLowest,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Komentar',
-                              style: AppTheme().labelCaps.copyWith(
-                                color: AppColors.onSurface,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                // primaryContainer solid token — was
-                                // AppColors.primarySurface (deleted)
-                                color: AppColors.primaryContainer,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '${comments.length}',
-                                style: AppTheme().labelSmall.copyWith(
-                                  color: AppColors.onPrimaryContainer,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: StyledCard(
+                      padding: const EdgeInsets.all(20),
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Komentar',
+                                style: AppTheme().labelCaps.copyWith(
+                                  color: isDark ? Colors.white70 : AppColors.onSurface,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics:
-                              const NeverScrollableScrollPhysics(),
-                          itemCount: comments.length,
-                          itemBuilder: (context, idx) {
-                            final c = comments[idx];
-                            final isHelpdesk =
-                                c.authorRole == 'helpdesk';
-                            final isOutgoing = c.authorName ==
-                                _authService.currentUser?.name;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                  bottom: 16),
-                              child: MessageBubble(
-                                message: c.body,
-                                timestamp:
-                                    '${c.authorName} • '
-                                    '${_timeAgo(c.createdAt)}',
-                                isOutgoing: isOutgoing,
-                                avatar: Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    // Solid tint tokens — no opacity
-                                    color: isHelpdesk
-                                        ? AppColors.surfaceContainerLow
-                                        : AppColors.primaryFixed,
-                                    shape: BoxShape.circle,
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '${comments.length}',
+                                  style: const TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      c.authorAvatar,
-                                      style: AppTheme()
-                                          .labelSmall
-                                          .copyWith(
-                                            fontWeight: FontWeight.w700,
-                                            color: isHelpdesk
-                                                ? AppColors.successAccent
-                                                : AppColors.primary,
-                                          ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: comments.length,
+                            itemBuilder: (context, idx) {
+                              final c = comments[idx];
+                              final isHelpdesk = c.authorRole == 'helpdesk';
+                              final isOutgoing = c.authorName == _authService.currentUser?.name;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: MessageBubble(
+                                  message: c.body,
+                                  timestamp: '${c.authorName} • ${_timeAgo(c.createdAt)}',
+                                  isOutgoing: isOutgoing,
+                                  avatar: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: isHelpdesk
+                                          ? AppColors.success.withValues(alpha: 0.1)
+                                          : AppColors.primary.withValues(alpha: 0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        c.authorAvatar,
+                                        style: TextStyle(
+                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          color: isHelpdesk
+                                              ? AppColors.success
+                                              : AppColors.primary,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 80),
@@ -885,7 +888,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               16,
               12 + MediaQuery.of(context).padding.bottom,
             ),
-            color: AppColors.surfaceContainerLowest,
+            color: isDark ? const Color(0xFF1E1E2F) : AppColors.surfaceContainerLowest,
             child: MessageInput(
               controller: _commentController,
               hint: 'Tulis komentar...',
@@ -917,12 +920,15 @@ class _PersonInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       children: [
         Text(
           label,
           style: AppTheme().labelSmall.copyWith(
             color: AppColors.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
@@ -933,21 +939,18 @@ class _PersonInfo extends StatelessWidget {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                // primaryFixed = lightest primary tint (solid)
-                // surfaceContainerHigh = solid medium neutral for unset
-                color: avatar != null
-                    ? AppColors.primaryFixed
-                    : AppColors.surfaceContainerHigh,
+                gradient: avatar != null ? AppColors.primaryGradient : null,
+                color: avatar != null ? null : (isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.surfaceContainerHigh),
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: Text(
                   avatar ?? '?',
-                  style: AppTheme().labelSmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: avatar != null
-                        ? AppColors.primary
-                        : AppColors.onSurfaceVariant,
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: avatar != null ? Colors.white : AppColors.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -957,7 +960,8 @@ class _PersonInfo extends StatelessWidget {
               child: Text(
                 name,
                 style: AppTheme().bodyMedium.copyWith(
-                  color: AppColors.onSurface,
+                  color: isDark ? Colors.white : AppColors.onSurface,
+                  fontWeight: FontWeight.w600,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

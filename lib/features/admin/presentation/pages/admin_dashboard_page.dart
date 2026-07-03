@@ -107,6 +107,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
+        titleSpacing: 20,
         title: Text(
           'Dashboard Admin',
           style: AppTheme().headlineSmall,
@@ -117,6 +118,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             onPressed: _loadDashboardStats,
             icon: const Icon(Icons.refresh_rounded, size: 22),
           ),
+          const SizedBox(width: 12),
         ],
       ),
       body: _isLoading
@@ -199,7 +201,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'Open',
                 value: '$open',
-                color: AppColors.statusOpen,
+                color: AppColors.primary,
                 icon: Icons.info_outline_rounded,
               ),
             ),
@@ -212,7 +214,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'In Progress',
                 value: '$inProgress',
-                color: AppColors.statusInProgress,
+                color: const Color(0xFF6B7280),
                 icon: Icons.access_time_rounded,
               ),
             ),
@@ -221,7 +223,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'Closed',
                 value: '$closed',
-                color: AppColors.statusClosed,
+                color: const Color(0xFF6B7280),
                 icon: Icons.check_circle_rounded,
               ),
             ),
@@ -259,7 +261,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'Aktif',
                 value: '$active',
-                color: AppColors.success,
+                color: AppColors.primary,
                 icon: Icons.check_circle_rounded,
               ),
             ),
@@ -268,7 +270,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'Nonaktif',
                 value: '$inactive',
-                color: AppColors.error,
+                color: const Color(0xFF6B7280),
                 icon: Icons.cancel_rounded,
               ),
             ),
@@ -281,7 +283,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _RoleStatCard(
                 title: 'User',
                 value: '$userCount',
-                color: AppColors.textSecondary,
+                color: const Color(0xFF6B7280),
               ),
             ),
             const SizedBox(width: 12),
@@ -289,7 +291,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _RoleStatCard(
                 title: 'Helpdesk',
                 value: '$helpdeskCount',
-                color: AppColors.info,
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(width: 12),
@@ -321,7 +323,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'Total Komentar',
                 value: '$totalComments',
-                color: AppColors.info,
+                color: AppColors.primary,
                 icon: Icons.chat_bubble_outline_rounded,
               ),
             ),
@@ -330,7 +332,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'Total Lampiran',
                 value: '$totalAttachments',
-                color: AppColors.success,
+                color: const Color(0xFF6B7280),
                 icon: Icons.attach_file_rounded,
               ),
             ),
@@ -339,7 +341,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _StatCard(
                 title: 'Total Notifikasi',
                 value: '$totalNotifications',
-                color: AppColors.priorityHigh,
+                color: const Color(0xFF6B7280),
                 icon: Icons.notifications_rounded,
               ),
             ),
@@ -458,89 +460,108 @@ class _LatestTicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return StyledCard(
       onTap: () {
         Navigator.of(context).pushNamed(
           '/ticket-detail',
           arguments: ticket,
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.outlineVariant,
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                PriorityBadge(
-                  text: ticket.priority.toUpperCase(),
-                  priority: _priorityLevel(ticket.priority),
+      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              PriorityBadge(
+                text: ticket.priority.toUpperCase(),
+                priority: _priorityLevel(ticket.priority),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 8),
-                Text(
+                child: Text(
                   ticket.ticketNumber,
-                  style: AppTheme().labelSmall.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    letterSpacing: 0.3,
+                  style: const TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
                   ),
                 ),
-                const Spacer(),
-                StatusBadge(
-                  text: _statusLabel(ticket.status),
-                  status: _ticketStatus(ticket.status),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              ticket.title,
-              style: AppTheme().bodyLarge.copyWith(
-                color: AppColors.onSurface,
-                height: 1.3,
-                letterSpacing: -0.2,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _categoryLabel(ticket.category),
-              style: AppTheme().bodyMedium.copyWith(
-                color: AppColors.onSurfaceVariant,
+              const Spacer(),
+              StatusBadge(
+                text: _statusLabel(ticket.status),
+                status: _ticketStatus(ticket.status),
               ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            ticket.title,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppColors.onSurface,
+              height: 1.3,
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(Icons.person_rounded, size: 16, color: AppColors.onSurfaceVariant),
-                const SizedBox(width: 4),
-                Text(
-                  ticket.reporterName,
-                  style: AppTheme().bodyMedium.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  _timeAgo(ticket.createdAt),
-                  style: AppTheme().labelSmall.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _categoryLabel(ticket.category),
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            height: 1,
+            width: double.infinity,
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.08) 
+                : AppColors.outlineVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.person_rounded, size: 16, color: isDark ? Colors.white60 : AppColors.onSurfaceVariant),
+              const SizedBox(width: 6),
+              Text(
+                ticket.reporterName,
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _timeAgo(ticket.createdAt),
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -561,16 +582,11 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return StyledCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.outlineVariant,
-          width: 1,
-        ),
-      ),
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -580,7 +596,7 @@ class _StatCard extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
+                  color: color.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -592,19 +608,23 @@ class _StatCard extends StatelessWidget {
               const Spacer(),
               Text(
                 value,
-                style: AppTheme().displayLarge.copyWith(
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
-                  color: color,
+                  color: isDark ? Colors.white : AppColors.onSurface,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             title,
-            style: AppTheme().labelSmall.copyWith(
-              color: AppColors.onSurfaceVariant,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
             ),
           ),
         ],
@@ -626,21 +646,17 @@ class _RoleStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return StyledCard(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.outlineVariant,
-          width: 1,
-        ),
-      ),
+      margin: EdgeInsets.zero,
       child: Column(
         children: [
           Text(
             value,
-            style: AppTheme().headlineMedium.copyWith(
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: color,
@@ -649,8 +665,11 @@ class _RoleStatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             title,
-            style: AppTheme().labelSmall.copyWith(
-              color: AppColors.onSurfaceVariant,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
             ),
           ),
         ],

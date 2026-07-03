@@ -1,7 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
-/// Flat structural Card replacing Glassmorphism configurations
+/// Real Glassmorphism Card with Backdrop Filter blur and soft shadow depth
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -26,36 +27,40 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(16);
+    final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(20);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget cardChild = Container(
       width: width,
       height: height,
-      padding: padding ?? const EdgeInsets.all(20),
       margin: margin,
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: effectiveBorderRadius,
-        border:
-            border ??
-            Border.all(
-              color: isDark
-                  ? AppColors.outlineVariant.withValues(alpha: 0.2)
-                  : AppColors.outlineVariant.withValues(alpha: 0.5),
-              width: 1,
-            ),
-        color: isDark ? const Color(0xFF2E2E2E) : Colors.white,
-        // Add subtle shadow for depth
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppColors.softShadow,
       ),
-      child: child,
+      child: ClipRRect(
+        borderRadius: effectiveBorderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
+          child: Container(
+            padding: padding ?? const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: effectiveBorderRadius,
+              border: border ??
+                  Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white.withValues(alpha: 0.35),
+                    width: 1.5,
+                  ),
+              color: isDark
+                  ? const Color(0xFF1E1E2F).withValues(alpha: 0.65)
+                  : Colors.white.withValues(alpha: 0.65),
+            ),
+            child: child,
+          ),
+        ),
+      ),
     );
 
     if (onTap != null) {
@@ -75,7 +80,7 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Standard flat card without depth shadows
+/// Standard premium card with elevation depth
 class StyledCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -97,12 +102,13 @@ class StyledCard extends StatelessWidget {
     this.onTap,
     this.glowColor,
     this.hasBorder = true,
-    this.hasShadow = false,
+    this.hasShadow = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     final cardContent = Container(
       width: width,
       height: height,
@@ -110,26 +116,19 @@ class StyledCard extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(20),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2E2E2E) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF232230) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
         border: hasBorder
             ? Border.all(
                 color: isDark
-                    ? AppColors.outlineVariant.withValues(alpha: 0.2)
-                    : AppColors.outlineVariant.withValues(alpha: 0.5),
+                    ? AppColors.outlineVariant.withValues(alpha: 0.12)
+                    : AppColors.outlineVariant.withValues(alpha: 0.4),
                 width: 1,
               )
             : null,
-        // Add subtle shadow for depth
         boxShadow: hasShadow || onTap != null
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
+            ? AppColors.premiumShadow
+            : AppColors.softShadow,
       ),
       child: child,
     );
@@ -139,7 +138,7 @@ class StyledCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           splashColor: AppColors.primary.withValues(alpha: 0.08),
           highlightColor: AppColors.primary.withValues(alpha: 0.04),
           child: cardContent,
@@ -151,7 +150,7 @@ class StyledCard extends StatelessWidget {
   }
 }
 
-/// Flat Bento-style Card layout
+/// Bento-style Card layout with functional gradient backgrounds
 class BentoCard extends StatelessWidget {
   final String label;
   final String value;
@@ -174,33 +173,54 @@ class BentoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBgColor = backgroundColor ?? AppColors.primary;
-    final effectiveTextColor = textColor ?? AppColors.onPrimary;
+    final effectiveTextColor = textColor ?? Colors.white;
+
+    // Map solid background colors to premium gradients
+    Gradient? cardGradient;
+    Color cardBgColor = backgroundColor ?? AppColors.primary;
+    
+    if (backgroundColor == AppColors.primary) {
+      cardGradient = AppColors.primaryGradient;
+    } else if (backgroundColor == AppColors.statusOpen) {
+      cardGradient = AppColors.infoGradient;
+    } else if (backgroundColor == AppColors.statusInProgress) {
+      cardGradient = AppColors.warningGradient;
+    } else if (backgroundColor == AppColors.statusClosed) {
+      cardGradient = AppColors.successGradient;
+    } else if (backgroundColor == AppColors.surfaceContainerHigh || backgroundColor == AppColors.canvas) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      cardBgColor = isDark ? const Color(0xFF2E2E2E) : const Color(0xFFF1EDEC);
+    } else if (backgroundColor != null) {
+      cardBgColor = backgroundColor!;
+    } else {
+      cardGradient = AppColors.primaryGradient;
+    }
 
     return Container(
       width: double.infinity,
-      // Enforces clean flat clipping onto your 16px border radius scale
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: effectiveBgColor,
-        borderRadius: BorderRadius.circular(16),
+        color: cardGradient == null ? cardBgColor : null,
+        gradient: cardGradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.softShadow,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
               if (icon != null)
                 Positioned(
-                  bottom: -24,
-                  right: -24,
+                  bottom: -20,
+                  right: -20,
                   child: Icon(
                     icon,
-                    size: 96,
-                    color: effectiveTextColor.withValues(alpha: 0.1),
+                    size: 90,
+                    color: effectiveTextColor.withValues(alpha: 0.12),
                   ),
                 ),
               Padding(
@@ -213,25 +233,25 @@ class BentoCard extends StatelessWidget {
                       label.toUpperCase(),
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: effectiveTextColor.withValues(alpha: 0.7),
-                        letterSpacing: 0.5,
+                        color: effectiveTextColor.withValues(alpha: 0.75),
+                        letterSpacing: 0.8,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       value,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         color: effectiveTextColor,
-                        letterSpacing: -0.01,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     if (footer != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       footer!,
                     ],
                   ],

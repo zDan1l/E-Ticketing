@@ -40,12 +40,17 @@ class ClayIconButton extends StatelessWidget {
     }
 
     final effectiveSize = size ?? 48.0;
+    final isWhiteBg = effectiveBgColor == Colors.white || effectiveBgColor == AppColors.surfaceContainerLowest;
 
     return Tooltip(
       message: tooltip ?? '',
-      child: SizedBox(
+      child: Container(
         width: effectiveSize,
         height: effectiveSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: isWhiteBg ? AppColors.softShadow : null,
+        ),
         child: Material(
           color: effectiveBgColor,
           shape: const CircleBorder(),
@@ -95,20 +100,28 @@ class ClayFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBgColor = backgroundColor ?? AppColors.error;
+    final effectiveBgColor = backgroundColor ?? AppColors.primary;
     final effectiveIconColor = iconColor ?? Colors.white;
+    final isDefaultPrimary = backgroundColor == null;
 
-    return FloatingActionButton(
-      onPressed: onPressed,
-      tooltip: tooltip,
-      backgroundColor: effectiveBgColor,
-      foregroundColor: effectiveIconColor,
-      elevation: 0,
-      hoverElevation: 0,
-      focusElevation: 0,
-      highlightElevation: 0,
-      shape: const CircleBorder(),
-      child: Icon(icon),
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: isDefaultPrimary ? AppColors.primaryGradient : null,
+        boxShadow: AppColors.glowShadow,
+      ),
+      child: FloatingActionButton(
+        onPressed: onPressed,
+        tooltip: tooltip,
+        backgroundColor: isDefaultPrimary ? Colors.transparent : effectiveBgColor,
+        foregroundColor: effectiveIconColor,
+        elevation: 0,
+        hoverElevation: 0,
+        focusElevation: 0,
+        highlightElevation: 0,
+        shape: const CircleBorder(),
+        child: Icon(icon),
+      ),
     );
   }
 }

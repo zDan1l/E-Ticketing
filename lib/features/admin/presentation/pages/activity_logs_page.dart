@@ -67,6 +67,7 @@ class _ActivityLogsPageState extends State<ActivityLogsPage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
+        titleSpacing: 20,
         title: Text(
           'Activity Logs',
           style: Theme.of(context).textTheme.titleLarge,
@@ -77,6 +78,7 @@ class _ActivityLogsPageState extends State<ActivityLogsPage> {
             onPressed: () => _loadActivities(page: 1),
             tooltip: 'Refresh',
           ),
+          const SizedBox(width: 16),
         ],
       ),
       body: _isLoading

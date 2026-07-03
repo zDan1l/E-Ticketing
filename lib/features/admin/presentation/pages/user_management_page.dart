@@ -52,6 +52,235 @@ class _UserManagementPageState extends State<UserManagementPage> {
     }
   }
 
+  void _showUserActions(UserModel user) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceContainerLowest : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : AppColors.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: user.isActive 
+                          ? AppColors.primary.withValues(alpha: 0.1) 
+                          : Colors.grey.withValues(alpha: 0.1),
+                      child: Text(
+                        user.avatar,
+                        style: TextStyle(
+                          color: user.isActive ? AppColors.primary : Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppColors.onSurface,
+                            ),
+                          ),
+                          Text(
+                            user.email,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: isDark ? Colors.white60 : AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'TINDAKAN ADMIN',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: Icon(
+                    user.isActive ? Icons.block_flipped : Icons.check_circle_outline_rounded,
+                    color: user.isActive ? const Color(0xFF6B7280) : AppColors.primary,
+                  ),
+                  title: Text(
+                    user.isActive ? 'Nonaktifkan Akun' : 'Aktifkan Akun',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.onSurface,
+                    ),
+                  ),
+                  subtitle: Text(
+                    user.isActive 
+                        ? 'Pengguna tidak akan bisa masuk ke aplikasi' 
+                        : 'Pengguna akan bisa masuk ke aplikasi kembali',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _toggleUserStatus(user);
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.shield_outlined, color: AppColors.primary),
+                  title: Text(
+                    'Ubah Peran Pengguna',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.onSurface,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Peran saat ini: ${user.role.label}',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showRoleSelectionDialog(user);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _toggleUserStatus(UserModel user) async {
+    setState(() => _isLoading = true);
+    final success = await _userApiService.updateUserStatus(user.id, !user.isActive);
+    
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Status pengguna ${user.name} berhasil diperbarui'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _loadUsers();
+      } else {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal memperbarui status pengguna'),
+            backgroundColor: const Color(0xFF6B7280),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showRoleSelectionDialog(UserModel user) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Pilih Peran Baru',
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: UserRole.values.map((role) {
+              return ListTile(
+                title: Text(role.label),
+                leading: Radio<UserRole>(
+                  value: role,
+                  groupValue: user.role,
+                  onChanged: (newRole) {
+                    Navigator.pop(context);
+                    if (newRole != null && newRole != user.role) {
+                      _changeUserRole(user, newRole);
+                    }
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _changeUserRole(UserModel user, UserRole role) async {
+    setState(() => _isLoading = true);
+    final success = await _userApiService.updateUserRole(user.id, role.name);
+    
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Peran pengguna ${user.name} berhasil diubah menjadi ${role.label}'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _loadUsers();
+      } else {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal mengubah peran pengguna'),
+            backgroundColor: const Color(0xFF6B7280),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = _authService.currentUser;
@@ -128,9 +357,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                             final user = _users[index];
                             return _UserCard(
                               user: user,
-                              onTap: () {
-                                // TODO: Navigate to user details or actions
-                              },
+                              onTap: () => _showUserActions(user),
                             );
                           },
                         ),
@@ -219,8 +446,8 @@ class _UserCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: user.isActive
-                  ? AppColors.primaryContainer
-                  : AppColors.surfaceContainerHigh,
+                  ? AppColors.primary.withValues(alpha: 0.08)
+                  : const Color(0xFF6B7280).withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -231,8 +458,8 @@ class _UserCard extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: user.isActive
-                      ? AppColors.onPrimaryContainer
-                      : AppColors.onSurfaceVariant,
+                      ? AppColors.primary
+                      : const Color(0xFF6B7280),
                 ),
               ),
             ),
@@ -269,18 +496,18 @@ class _UserCard extends StatelessWidget {
                   children: [
                     CustomBadge(
                       text: user.role.label,
-                      backgroundColor: AppColors.primaryContainer,
-                      textColor: AppColors.onPrimaryContainer,
+                      backgroundColor: AppColors.primary,
+                      textColor: AppColors.primary,
                     ),
                     const SizedBox(width: 8),
                     CustomBadge(
                       text: user.isActive ? 'AKTIF' : 'NONAKTIF',
                       backgroundColor: user.isActive
-                          ? AppColors.primaryContainer
-                          : AppColors.errorContainer,
+                          ? AppColors.primary
+                          : const Color(0xFF6B7280),
                       textColor: user.isActive
-                          ? AppColors.onPrimaryContainer
-                          : AppColors.onErrorContainer,
+                          ? AppColors.primary
+                          : const Color(0xFF6B7280),
                     ),
                   ],
                 ),

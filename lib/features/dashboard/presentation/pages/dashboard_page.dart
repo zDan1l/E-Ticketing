@@ -13,6 +13,9 @@ import '../../../../services/user_api_service.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 
 class DashboardPage extends StatefulWidget {
+  static final GlobalKey<_DashboardPageState> dashboardKey =
+      GlobalKey<_DashboardPageState>();
+
   const DashboardPage({super.key});
 
   @override
@@ -151,16 +154,24 @@ class _DashboardPageState extends State<DashboardPage>
                         Container(
                           width: 48,
                           height: 48,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
                             shape: BoxShape.circle,
+                            boxShadow: AppColors.softShadow,
                           ),
-                          child: Center(
-                            child: Text(
-                              currentUser?.avatar ?? '?',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: AppColors.onPrimary,
-                                fontWeight: FontWeight.w800,
+                          padding: const EdgeInsets.all(2),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                currentUser?.avatar ?? '?',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                           ),
@@ -171,13 +182,15 @@ class _DashboardPageState extends State<DashboardPage>
                           children: [
                             Text(
                               currentUser?.name ?? 'Guest',
-                              style: Theme.of(context).textTheme.titleLarge, //
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             const SizedBox(height: 2),
                             CustomBadge(
                               text: _getRoleLabel(currentUser?.role),
-                              backgroundColor: AppColors.primaryContainer, //
-                              textColor: AppColors.onPrimaryContainer, //
+                              backgroundColor: AppColors.primary,
+                              textColor: AppColors.primary,
                             ),
                           ],
                         ),
@@ -457,8 +470,7 @@ class _DashboardPageState extends State<DashboardPage>
                           value:
                               'Daftar akun dan konfigurasi hak akses internal',
                           icon: Icons.people_rounded,
-                          backgroundColor: AppColors.tertiary,
-                          iconColor: AppColors.onTertiary,
+                          backgroundColor: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -473,8 +485,7 @@ class _DashboardPageState extends State<DashboardPage>
                           value:
                               'Pelacakan audit sistem infrastruktur operasional',
                           icon: Icons.history_rounded,
-                          backgroundColor: AppColors.secondary,
-                          iconColor: AppColors.onSecondary,
+                          backgroundColor: Color(0xFF6B7280),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -490,7 +501,6 @@ class _DashboardPageState extends State<DashboardPage>
                               'Metrik agregasi menyeluruh dan visualisasi performa',
                           icon: Icons.dashboard_rounded,
                           backgroundColor: AppColors.primary,
-                          iconColor: AppColors.onPrimary,
                         ),
                       ),
                     ],
@@ -762,32 +772,33 @@ class _RecentTicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return StyledCard(
       onTap: onTap,
+      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'TKT-${ticket.ticketNumber}',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      //
-                      color: AppColors.primary, //
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'TKT-${ticket.ticketNumber}',
+                  style: const TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    ticket.title,
-                    style: Theme.of(context).textTheme.titleLarge, //
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                ),
               ),
               StatusBadge(
                 text: _ticketStatus(ticket.status).name,
@@ -795,48 +806,76 @@ class _RecentTicketCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+          Text(
+            ticket.title,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppColors.onSurface,
+              height: 1.3,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
           Text(
             ticket.description,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 13,
+              color: isDark ? Colors.white70 : AppColors.onSurfaceVariant,
+              height: 1.4,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
+          Container(
+            height: 1,
+            width: double.infinity,
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.08) 
+                : AppColors.outlineVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      gradient: AppColors.primaryGradient,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.surfaceContainerLowest, width: 2),
+                      border: Border.all(color: Colors.white, width: 1.5),
                     ),
                     child: Center(
                       child: Text(
                         ticket.assigneeAvatar ?? '?',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onPrimary,
+                        style: const TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   if (ticket.commentsCount > 0) ...[
                     const Icon(
                       Icons.chat_bubble_outline_rounded,
                       size: 14,
                       color: AppColors.outline,
-                    ), //
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '${ticket.commentsCount}',
-                      style: Theme.of(context).textTheme.labelSmall, //
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 11),
                     ),
                     const SizedBox(width: 12),
                   ],
@@ -845,11 +884,11 @@ class _RecentTicketCard extends StatelessWidget {
                       Icons.attach_file_rounded,
                       size: 14,
                       color: AppColors.outline,
-                    ), //
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '${ticket.attachmentsCount}',
-                      style: Theme.of(context).textTheme.labelSmall, //
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 11),
                     ),
                   ],
                 ],
@@ -860,11 +899,11 @@ class _RecentTicketCard extends StatelessWidget {
                     Icons.schedule_rounded,
                     size: 14,
                     color: AppColors.onSurfaceVariant,
-                  ), //
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     _timeAgo(ticket.createdAt),
-                    style: Theme.of(context).textTheme.labelSmall, //
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 11),
                   ),
                 ],
               ),

@@ -149,20 +149,24 @@ class _NotificationPageState extends State<NotificationPage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
+        titleSpacing: 20,
         title: Text(
           'Notifikasi',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         actions: [
           if (_notifications.isNotEmpty && _notifications.any((n) => !n.isRead))
-            TextButton.icon(
-              onPressed: _markAllRead,
-              icon: const Icon(Icons.done_all_rounded, size: 20),
-              label: Text(
-                'Tandai Semua',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: TextButton.icon(
+                onPressed: _markAllRead,
+                icon: const Icon(Icons.done_all_rounded, size: 20),
+                label: Text(
+                  'Tandai Semua',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

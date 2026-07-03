@@ -109,6 +109,112 @@ class AppColors {
     tileMode: TileMode.clamp,
   );
 
+  // ── PREMIUM GRADIENTS ──────────────────────────────────────────────────────
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF3D31A3), // primary
+      Color(0xFF6554F1), // royal indigo-blue
+    ],
+  );
+
+  static const LinearGradient secondaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF875203), // secondary
+      Color(0xFFFCB564), // secondaryContainer
+    ],
+  );
+
+  static const LinearGradient successGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF2E7D32),
+      Color(0xFF89E18D),
+    ],
+  );
+
+  static const LinearGradient warningGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFEF6C00),
+      Color(0xFFFFB867),
+    ],
+  );
+
+  static const LinearGradient errorGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFC62828),
+      Color(0xFFBA1A1A),
+    ],
+  );
+
+  static const LinearGradient infoGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF1565C0),
+      Color(0xFF3C57A7),
+    ],
+  );
+
+  static const LinearGradient bgLightGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFFFDF8F8),
+      Color(0xFFF1EDEC),
+    ],
+  );
+
+  static const LinearGradient bgDarkGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFF131313),
+      Color(0xFF1C1B1B),
+    ],
+  );
+
+  // ── PREMIUM SHADOWS ────────────────────────────────────────────────────────
+  static List<BoxShadow> get premiumShadow => [
+        BoxShadow(
+          color: const Color(0xFF140067).withValues(alpha: 0.08),
+          blurRadius: 24,
+          offset: const Offset(0, 8),
+        ),
+      ];
+
+  static List<BoxShadow> get softShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.04),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
+        ),
+      ];
+
+  static List<BoxShadow> get glowShadow => [
+        BoxShadow(
+          color: const Color(0xFF3D31A3).withValues(alpha: 0.16),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
+        ),
+      ];
+
+  static List<BoxShadow> get bottomNavShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.06),
+          blurRadius: 20,
+          offset: const Offset(0, -4),
+        ),
+      ];
+
   // ── ALIASES (convenience shortcuts used across the app) ────────────────────
   static const Color white          = Color(0xFFFFFFFF);
   static const Color success        = successAccent;

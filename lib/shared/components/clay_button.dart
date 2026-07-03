@@ -99,28 +99,57 @@ class ClayButton extends StatelessWidget {
     }
 
     // Standard Solid Button Style
+    final isDefaultPrimary = backgroundColor == null && !isSecondary;
+    
+    Widget buttonWidget = ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: (isDefaultPrimary || isSecondary) && onPressed != null
+            ? Colors.transparent
+            : (onPressed == null ? AppColors.disabled.withValues(alpha: 0.12) : effectiveBackgroundColor),
+        foregroundColor: onPressed == null ? AppColors.disabled : effectiveTextColor,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(9999),
+        ),
+        textStyle: const TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.2,
+        ),
+      ),
+      child: contentChild,
+    );
+
+    if (onPressed != null) {
+      if (isDefaultPrimary) {
+        buttonWidget = Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: AppColors.glowShadow,
+          ),
+          child: buttonWidget,
+        );
+      } else if (isSecondary) {
+        buttonWidget = Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.secondaryGradient,
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: AppColors.softShadow,
+          ),
+          child: buttonWidget,
+        );
+      }
+    }
+
     return SizedBox(
       width: width,
       height: height,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: effectiveBackgroundColor,
-          foregroundColor: effectiveTextColor,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9999),
-          ),
-          textStyle: const TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        child: contentChild,
-      ),
+      child: buttonWidget,
     );
   }
 }

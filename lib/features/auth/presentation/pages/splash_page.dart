@@ -92,8 +92,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        // Solid primary fill — no gradient
-        color: AppColors.primary,
+        decoration: const BoxDecoration(
+          gradient: AppColors.primaryGradient,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -110,9 +111,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        // Solid white container — no shadow
                         color: AppColors.surfaceContainerLowest,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: AppColors.premiumShadow,
                       ),
                       child: const Icon(
                         Icons.confirmation_number_rounded,
