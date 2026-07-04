@@ -59,7 +59,11 @@ class ClayButton extends StatelessWidget {
           onPressed: onPressed,
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: height != null ? 0 : 8,
+            ),
+            minimumSize: Size(width ?? 0, height ?? 0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(9999),
             ),
@@ -82,7 +86,11 @@ class ClayButton extends StatelessWidget {
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: 32,
+              vertical: height != null ? 0 : 12,
+            ),
+            minimumSize: Size(width ?? 0, height ?? 0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(9999),
             ),
@@ -110,7 +118,11 @@ class ClayButton extends StatelessWidget {
         foregroundColor: onPressed == null ? AppColors.disabled : effectiveTextColor,
         elevation: 0,
         shadowColor: Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: 32,
+          vertical: height != null ? 0 : 12,
+        ),
+        minimumSize: Size(width ?? 0, height ?? 0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(9999),
         ),

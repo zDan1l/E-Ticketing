@@ -166,44 +166,47 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(24),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(
+                  Icons.history_rounded,
+                  color: AppColors.primary,
+                  size: 40,
+                ),
               ),
-              child: const Icon(
-                Icons.history_rounded,
-                color: AppColors.primary,
-                size: 40,
+              const SizedBox(height: 20),
+              Text(
+                'Belum ada aktivitas',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Belum ada aktivitas',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Aktivitas sistem akan muncul di sini',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.onSurfaceVariant,
+              const SizedBox(height: 8),
+              Text(
+                'Aktivitas sistem akan muncul di sini',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ClayButton(
-              text: 'Refresh',
-              onPressed: onRefresh,
-              icon: Icons.refresh_rounded,
-            ),
-          ],
+              const SizedBox(height: 24),
+              ClayButton(
+                text: 'Refresh',
+                onPressed: onRefresh,
+                icon: Icons.refresh_rounded,
+              ),
+            ],
+          ),
         ),
       ),
     );

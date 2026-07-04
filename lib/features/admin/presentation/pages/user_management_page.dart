@@ -675,43 +675,46 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.people_rounded, color: AppColors.secondary, size: 40),
               ),
-              child: const Icon(Icons.people_rounded, color: AppColors.secondary, size: 40),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Belum ada pengguna',
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
+              const SizedBox(height: 24),
+              const Text(
+                'Belum ada pengguna',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Data pengguna akan muncul di sini',
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 14,
-                color: AppColors.onSurfaceVariant,
+              const SizedBox(height: 8),
+              const Text(
+                'Data pengguna akan muncul di sini',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 14,
+                  color: AppColors.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ClayButton(text: 'Refresh', onPressed: onRefresh, icon: Icons.refresh_rounded),
-          ],
+              const SizedBox(height: 24),
+              ClayButton(text: 'Refresh', onPressed: onRefresh, icon: Icons.refresh_rounded),
+            ],
+          ),
         ),
       ),
     );

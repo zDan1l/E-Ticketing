@@ -117,13 +117,13 @@ class _AssignTicketDialogState extends State<AssignTicketDialog> {
         ],
       ),
       contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      content: Column(
+       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 16),
           if (_isLoading)
             SizedBox(
-              height: 120,
+              height: 170,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -149,7 +149,7 @@ class _AssignTicketDialogState extends State<AssignTicketDialog> {
             )
           else if (_errorMessage != null)
             SizedBox(
-              height: 120,
+              height: 170,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -182,7 +182,7 @@ class _AssignTicketDialogState extends State<AssignTicketDialog> {
             )
           else if (_helpdeskStaff.isEmpty)
             SizedBox(
-              height: 120,
+              height: 170,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -27,42 +27,45 @@ class EnhancedEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Illustration
-            _buildIllustration(),
-            const SizedBox(height: 24),
-            // Title
-            Text(
-              title,
-              style: AppTheme().headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 12),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Illustration
+              _buildIllustration(),
+              const SizedBox(height: 24),
+              // Title
               Text(
-                subtitle!,
-                style: AppTheme().bodyMedium?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  height: 1.5,
+                title,
+                style: AppTheme().headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  subtitle!,
+                  style: AppTheme().bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: 24),
+                ClayButton(
+                  text: actionLabel!,
+                  onPressed: onAction,
+                  icon: _getActionIcon(),
+                ),
+              ],
             ],
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 24),
-              ClayButton(
-                text: actionLabel!,
-                onPressed: onAction,
-                icon: _getActionIcon(),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
