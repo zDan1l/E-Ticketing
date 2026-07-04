@@ -99,17 +99,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    CircleAvatar(
+                    UserAvatar(
+                      avatar: user.avatar,
+                      name: user.name,
+                      size: 40,
                       backgroundColor: user.isActive
                           ? AppColors.primary.withValues(alpha: 0.1)
                           : Colors.grey.withValues(alpha: 0.1),
-                      child: Text(
-                        user.avatar,
-                        style: TextStyle(
-                          color: user.isActive ? AppColors.primary : Colors.grey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      textColor: user.isActive ? AppColors.primary : Colors.grey,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -734,26 +731,15 @@ class _UserCard extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: user.isActive
-                  ? AppColors.primary.withValues(alpha: 0.08)
-                  : const Color(0xFF6B7280).withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                user.avatar,
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: user.isActive ? AppColors.primary : const Color(0xFF6B7280),
-                ),
-              ),
-            ),
+          UserAvatar(
+            avatar: user.avatar,
+            name: user.name,
+            size: 48,
+            fontSize: 14,
+            backgroundColor: user.isActive
+                ? AppColors.primary.withValues(alpha: 0.08)
+                : const Color(0xFF6B7280).withValues(alpha: 0.08),
+            textColor: user.isActive ? AppColors.primary : const Color(0xFF6B7280),
           ),
           const SizedBox(width: 16),
           Expanded(

@@ -151,30 +151,15 @@ class _DashboardPageState extends State<DashboardPage>
                   children: [
                     Row(
                       children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: AppColors.primaryGradient,
-                            shape: BoxShape.circle,
-                            boxShadow: AppColors.softShadow,
-                          ),
-                          padding: const EdgeInsets.all(2),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text(
-                                currentUser?.avatar ?? '?',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          ),
+                        UserAvatar(
+                          avatar: currentUser?.avatar,
+                          name: currentUser?.name,
+                          size: 48,
+                          fontSize: 18,
+                          backgroundColor: Colors.white,
+                          textColor: AppColors.primary,
+                          boxShadow: AppColors.softShadow,
+                          border: Border.all(color: AppColors.primaryContainer, width: 2),
                         ),
                         const SizedBox(width: 12),
                         Column(
@@ -859,25 +844,14 @@ class _RecentTicketCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                    child: Center(
-                      child: Text(
-                        ticket.assigneeAvatar ?? '?',
-                        style: const TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                  UserAvatar(
+                    avatar: ticket.assigneeAvatar,
+                    name: ticket.assigneeName,
+                    size: 28,
+                    fontSize: 10,
+                    textColor: Colors.white,
+                    backgroundColor: AppColors.primaryContainer,
+                    border: Border.all(color: Colors.white, width: 1.5),
                   ),
                   const SizedBox(width: 10),
                   if (ticket.commentsCount > 0) ...[

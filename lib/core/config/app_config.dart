@@ -16,7 +16,13 @@ class AppConfig {
     // Check if environment variable is set
     const envBaseUrl = String.fromEnvironment('API_BASE_URL');
     if (envBaseUrl.isNotEmpty) {
-      return envBaseUrl;
+      String url = envBaseUrl;
+      if (url.endsWith('/api/')) {
+        url = url.substring(0, url.length - 5);
+      } else if (url.endsWith('/api')) {
+        url = url.substring(0, url.length - 4);
+      }
+      return url;
     }
 
     // Otherwise, use platform-specific default
@@ -47,7 +53,11 @@ class AppConfig {
     // Check if environment variable is set
     const envBaseUrl = String.fromEnvironment('API_BASE_URL');
     if (envBaseUrl.isNotEmpty) {
-      return envBaseUrl;
+      String url = envBaseUrl;
+      if (!url.endsWith('/api') && !url.endsWith('/api/')) {
+        url = url.endsWith('/') ? '${url}api' : '$url/api';
+      }
+      return url;
     }
 
     // Otherwise, use platform-specific default
@@ -85,7 +95,11 @@ class AppConfig {
     // Check if environment variable is set
     const envBaseUrl = String.fromEnvironment('API_BASE_URL');
     if (envBaseUrl.isNotEmpty) {
-      return envBaseUrl;
+      String url = envBaseUrl;
+      if (!url.endsWith('/api') && !url.endsWith('/api/')) {
+        url = url.endsWith('/') ? '${url}api' : '$url/api';
+      }
+      return url;
     }
 
     // Otherwise, use platform-specific default

@@ -28,3 +28,6 @@ export 'progress.dart';
 // Enhanced Components (New)
 export 'enhanced_loading.dart';
 export 'enhanced_empty_state.dart';
+
+// Avatar
+export 'avatar.dart';

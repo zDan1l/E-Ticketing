@@ -274,24 +274,13 @@ class _AssignTicketDialogState extends State<AssignTicketDialog> {
                         value: staff,
                         child: Row(
                           children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  staff.avatar,
-                                  style: const TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
+                            UserAvatar(
+                              avatar: staff.avatar,
+                              name: staff.name,
+                              size: 32,
+                              fontSize: 11,
+                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                              textColor: AppColors.primary,
                             ),
                             const SizedBox(width: 12),
                             Expanded(

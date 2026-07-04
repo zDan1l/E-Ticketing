@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import '../core/config/app_config.dart';
 import '../core/config/http_client.dart';
 import '../models/role_model.dart';
@@ -359,7 +361,17 @@ class AuthService {
             email: _currentUser!.email,
             avatar: avatar ?? _currentUser!.avatar,
             role: _currentUser!.role,
+            isActive: _currentUser!.isActive,
           );
+
+          // Save to SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          if (fullName != null) {
+            await prefs.setString(AppConfig.keyUserName, fullName);
+          }
+          if (avatar != null) {
+            await prefs.setString(AppConfig.keyUserAvatar, avatar);
+          }
         }
 
         return {
@@ -381,6 +393,98 @@ class AuthService {
       return {
         'success': false,
         'message': 'Error updating profile: ${e.toString()}',
+      };
+    }
+  }
+
+  /// Upload profile avatar
+  Future<Map<String, dynamic>> uploadAvatar(XFile file) async {
+    try {
+      final uri = Uri.parse('${AppConfig.apiBaseUrl}${AppConfig.usersPath}/profile/avatar');
+      final request = http.MultipartRequest('POST', uri);
+
+      if (_accessToken != null) {
+        request.headers['Authorization'] = 'Bearer $_accessToken';
+      }
+      request.headers['Accept'] = 'application/json';
+
+      final bytes = await file.readAsBytes();
+      final multipartFile = http.MultipartFile.fromBytes(
+        'avatar',
+        bytes,
+        filename: file.name,
+      );
+      request.files.add(multipartFile);
+
+      final streamedResponse = await request.send();
+      final responseBody = await streamedResponse.stream.bytesToString();
+      final Map<String, dynamic> responseData = _httpClient.parseResponse(responseBody);
+
+      if (responseData['success'] == true) {
+        final userData = responseData['data'] as Map<String, dynamic>;
+        final newAvatar = userData['avatar'] as String;
+
+        // Update current user locally
+        if (_currentUser != null) {
+          _currentUser = _currentUser!.copyWith(avatar: newAvatar);
+
+          // Save to SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(AppConfig.keyUserAvatar, newAvatar);
+        }
+
+        return {
+          'success': true,
+          'message': 'Avatar updated successfully',
+          'avatar': newAvatar,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Failed to upload avatar',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error uploading avatar: ${e.toString()}',
+      };
+    }
+  }
+
+  /// Delete profile avatar
+  Future<Map<String, dynamic>> deleteAvatar() async {
+    try {
+      final response = await _httpClient.delete('${AppConfig.usersPath}/profile/avatar');
+
+      if (response['success'] == true) {
+        final userData = response['data'] as Map<String, dynamic>;
+        final newAvatar = userData['avatar'] as String;
+
+        // Update current user locally
+        if (_currentUser != null) {
+          _currentUser = _currentUser!.copyWith(avatar: newAvatar);
+
+          // Save to SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(AppConfig.keyUserAvatar, newAvatar);
+        }
+
+        return {
+          'success': true,
+          'message': 'Avatar deleted successfully',
+          'avatar': newAvatar,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': response['message'] ?? 'Failed to delete avatar',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error deleting avatar: ${e.toString()}',
       };
     }
   }

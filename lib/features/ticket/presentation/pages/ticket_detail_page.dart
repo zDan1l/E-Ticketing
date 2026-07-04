@@ -843,28 +843,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                   message: c.body,
                                   timestamp: '${c.authorName} • ${_timeAgo(c.createdAt)}',
                                   isOutgoing: isOutgoing,
-                                  avatar: Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: isHelpdesk
-                                          ? AppColors.success.withValues(alpha: 0.1)
-                                          : AppColors.primary.withValues(alpha: 0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        c.authorAvatar,
-                                        style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w800,
-                                          color: isHelpdesk
-                                              ? AppColors.success
-                                              : AppColors.primary,
-                                        ),
-                                      ),
-                                    ),
+                                  avatar: UserAvatar(
+                                    avatar: c.authorAvatar,
+                                    name: c.authorName,
+                                    size: 32,
+                                    fontSize: 12,
+                                    backgroundColor: isHelpdesk
+                                        ? AppColors.success.withValues(alpha: 0.1)
+                                        : AppColors.primary.withValues(alpha: 0.1),
+                                    textColor: isHelpdesk
+                                        ? AppColors.success
+                                        : AppColors.primary,
                                   ),
                                 ),
                               );

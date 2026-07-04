@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/auth_service.dart';
@@ -31,25 +32,104 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-  void _handleSave() {
+  void _handleSave() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          setState(() => _isLoading = false);
+      final result = await _authService.updateProfile(
+        fullName: _nameController.text,
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (result['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: const Text(
                 'Profil berhasil diperbarui',
-                style: const TextStyle(color: AppColors.onBackground),
+                style: TextStyle(color: AppColors.onBackground),
               ),
               backgroundColor: AppColors.successAccent,
               behavior: SnackBarBehavior.floating,
             ),
           );
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal memperbarui profil'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         }
-      });
+      }
+    }
+  }
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() => _isLoading = true);
+        final result = await _authService.uploadAvatar(image);
+
+        if (mounted) {
+          setState(() => _isLoading = false);
+          if (result['success'] == true) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Foto profil berhasil diubah'),
+                backgroundColor: AppColors.successAccent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Gagal mengunggah foto'),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
+  }
+
+  Future<void> _deleteAvatar() async {
+    setState(() => _isLoading = true);
+    final result = await _authService.deleteAvatar();
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Foto profil berhasil dihapus'),
+            backgroundColor: AppColors.successAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Gagal menghapus foto'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -103,25 +183,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 children: [
                   Stack(
                     children: [
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryContainer,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.primary,
-                            width: 3,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            _authService.currentUser?.avatar ?? 'U',
-                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                              fontSize: 32,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                      UserAvatar(
+                        avatar: _authService.currentUser?.avatar,
+                        name: _authService.currentUser?.name,
+                        size: 90,
+                        fontSize: 32,
+                        textColor: AppColors.primary,
+                        backgroundColor: AppColors.primaryContainer,
+                        border: Border.all(
+                          color: AppColors.primary,
+                          width: 3,
                         ),
                       ),
                       Positioned(
@@ -262,12 +333,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               color: AppColors.primary,
               onTap: () {
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Kamera dibuka...'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                _pickImage(ImageSource.camera);
               },
             ),
             const SizedBox(height: 8),
@@ -277,12 +343,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               color: AppColors.successAccent,
               onTap: () {
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Galeri dibuka...'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                _pickImage(ImageSource.gallery);
               },
             ),
             const SizedBox(height: 8),
@@ -290,7 +351,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               icon: Icons.delete_outline_rounded,
               label: 'Hapus Foto',
               color: AppColors.error,
-              onTap: () => Navigator.pop(ctx),
+              onTap: () {
+                Navigator.pop(ctx);
+                _deleteAvatar();
+              },
             ),
             SizedBox(height: MediaQuery.of(ctx).padding.bottom + 8),
           ],

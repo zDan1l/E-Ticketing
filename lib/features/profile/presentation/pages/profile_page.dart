@@ -154,27 +154,17 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 24),
                       // Avatar
-                      Container(
-                        width: 88,
-                        height: 88,
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLowest,
-                          shape: BoxShape.circle,
-                          boxShadow: AppColors.premiumShadow,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.35),
-                            width: 3,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            _authService.currentUser?.avatar ?? '?',
-                            style: AppTheme().displayLarge.copyWith(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                      UserAvatar(
+                        avatar: _authService.currentUser?.avatar,
+                        name: _authService.currentUser?.name,
+                        size: 88,
+                        fontSize: 32,
+                        textColor: AppColors.primary,
+                        backgroundColor: AppColors.surfaceContainerLowest,
+                        boxShadow: AppColors.premiumShadow,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.35),
+                          width: 3,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -275,8 +265,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         icon: Icons.person_outline_rounded,
                         title: 'Edit Profil',
                         subtitle: 'Ubah nama dan foto profil',
-                        onTap: () {
-                          Navigator.of(context).pushNamed('/edit-profile');
+                        onTap: () async {
+                          final result = await Navigator.of(context).pushNamed('/edit-profile');
+                          if (result == true || result == null) {
+                            // Rebuild in case avatar was picked or name changed
+                            setState(() {});
+                          }
                         },
                       ),
                       _MenuItem(

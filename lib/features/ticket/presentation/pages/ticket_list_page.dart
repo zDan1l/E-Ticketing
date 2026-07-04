@@ -657,25 +657,14 @@ class _TicketCard extends StatelessWidget {
               ),
               const Spacer(),
               if (ticket.assigneeName != null) ...[
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                  ),
-                  child: Center(
-                    child: Text(
-                      ticket.assigneeAvatar ?? '',
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                UserAvatar(
+                  avatar: ticket.assigneeAvatar,
+                  name: ticket.assigneeName,
+                  size: 28,
+                  fontSize: 10,
+                  textColor: Colors.white,
+                  backgroundColor: AppColors.primaryContainer,
+                  border: Border.all(color: Colors.white, width: 1.5),
                 ),
                 const SizedBox(width: 10),
               ],
