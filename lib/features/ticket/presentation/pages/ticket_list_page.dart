@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../models/ticket_model.dart';
+import '../../../../models/role_model.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/ticket_service.dart';
+import '../../../../services/user_api_service.dart';
 import '../../../../shared/components/components.dart';
 
 class TicketListPage extends StatefulWidget {
@@ -18,6 +20,8 @@ class _TicketListPageState extends State<TicketListPage> {
   String _selectedCategory = 'all';
   String _selectedPriority = 'all';
   String _searchQuery = '';
+  String? _selectedAssigneeId; // Admin only: filter by helpdesk assignee
+  List<UserModel> _helpdeskList = [];
 
   final List<Map<String, dynamic>> _filters = [
     {'key': 'all', 'label': 'Semua'},
@@ -44,6 +48,7 @@ class _TicketListPageState extends State<TicketListPage> {
 
   final TicketService _ticketService = TicketService();
   final AuthService _authService = AuthService();
+  final UserApiService _userApiService = UserApiService();
   final TextEditingController _searchController = TextEditingController();
 
   bool _isLoading = true;
@@ -55,6 +60,10 @@ class _TicketListPageState extends State<TicketListPage> {
   void initState() {
     super.initState();
     _loadTickets();
+    // Load helpdesk list for admin filter
+    if (_authService.currentUserRole == UserRole.admin) {
+      _loadHelpdeskStaff();
+    }
 
     // Check if there's a search query from navigation
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -67,6 +76,13 @@ class _TicketListPageState extends State<TicketListPage> {
         _loadTickets();
       }
     });
+  }
+
+  Future<void> _loadHelpdeskStaff() async {
+    final staff = await _userApiService.getHelpdeskStaff();
+    if (mounted) {
+      setState(() => _helpdeskList = staff);
+    }
   }
 
   @override
@@ -88,6 +104,7 @@ class _TicketListPageState extends State<TicketListPage> {
         status: _selectedFilter != 'all' ? _selectedFilter : null,
         category: _selectedCategory != 'all' ? _selectedCategory : null,
         priority: _selectedPriority != 'all' ? _selectedPriority : null,
+        assigneeId: _selectedAssigneeId, // Pass helpdesk filter for admin
       );
 
       if (mounted) {
@@ -125,6 +142,8 @@ class _TicketListPageState extends State<TicketListPage> {
     if (_selectedPriority != 'all') {
       tickets = tickets.where((t) => t.priority == _selectedPriority).toList();
     }
+
+    // Note: assignee filter is applied server-side via _loadTickets()
 
     return tickets;
   }
@@ -225,13 +244,14 @@ class _TicketListPageState extends State<TicketListPage> {
   @override
   Widget build(BuildContext context) {
     final tickets = _filteredTickets;
+    final isAdmin = _authService.currentUserRole == UserRole.admin;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         titleSpacing: 20,
         title: Text(
-          'Tiket Saya',
+          isAdmin ? 'Semua Tiket' : 'Tiket Saya',
           style: AppTheme().headlineSmall,
         ),
         centerTitle: false,
@@ -277,6 +297,66 @@ class _TicketListPageState extends State<TicketListPage> {
                     },
                   ),
                 ),
+                // Admin only: Helpdesk assignee filter
+                if (isAdmin && _helpdeskList.isNotEmpty)
+                  Container(
+                    color: AppColors.white,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.support_agent_rounded,
+                          size: 16,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Helpdesk:',
+                          style: AppTheme().bodyMedium.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                // "Semua" chip
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ChipBadge(
+                                    label: 'Semua',
+                                    isSelected: _selectedAssigneeId == null,
+                                    onTap: () {
+                                      setState(() => _selectedAssigneeId = null);
+                                      _loadTickets();
+                                    },
+                                  ),
+                                ),
+                                ..._helpdeskList.map((helpdesk) {
+                                  final isSelected = _selectedAssigneeId == helpdesk.id;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: ChipBadge(
+                                      label: helpdesk.name,
+                                      isSelected: isSelected,
+                                      onTap: () {
+                                        setState(() => _selectedAssigneeId =
+                                            isSelected ? null : helpdesk.id);
+                                        _loadTickets();
+                                      },
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (_errorMessage != null)
                   Container(
                     margin: const EdgeInsets.all(16),
@@ -387,6 +467,7 @@ class _TicketListPageState extends State<TicketListPage> {
     final isFiltering = _selectedFilter != 'all' ||
         _selectedCategory != 'all' ||
         _selectedPriority != 'all' ||
+        _selectedAssigneeId != null ||
         _searchQuery.isNotEmpty;
 
     if (isFiltering) {
@@ -396,6 +477,7 @@ class _TicketListPageState extends State<TicketListPage> {
             _selectedFilter = 'all';
             _selectedCategory = 'all';
             _selectedPriority = 'all';
+            _selectedAssigneeId = null;
             _searchQuery = '';
             _searchController.clear();
           });

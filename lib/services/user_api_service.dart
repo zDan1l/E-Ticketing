@@ -242,4 +242,82 @@ class UserApiService {
       return null;
     }
   }
+
+  /// Create new user (admin only)
+  Future<Map<String, dynamic>> createUser({
+    required String fullName,
+    required String email,
+    required String password,
+    required String role,
+  }) async {
+    try {
+      final response = await _httpClient.post(
+        AppConfig.usersPath,
+        body: {
+          'full_name': fullName,
+          'email': email,
+          'password': password,
+          'role': role,
+        },
+      );
+      return {
+        'success': response['success'] == true,
+        'message': response['message'] as String? ?? '',
+        'user': response['success'] == true && response['data'] != null
+            ? UserModel(
+                id: (response['data'] as Map<String, dynamic>)['id']?.toString() ?? '',
+                name: (response['data'] as Map<String, dynamic>)['name'] as String? ?? '',
+                email: (response['data'] as Map<String, dynamic>)['email'] as String? ?? '',
+                avatar: (response['data'] as Map<String, dynamic>)['avatar'] as String? ?? '?',
+                role: UserRole.fromString((response['data'] as Map<String, dynamic>)['role'] as String? ?? 'user'),
+                isActive: (response['data'] as Map<String, dynamic>)['isActive'] as bool? ?? true,
+              )
+            : null,
+      };
+    } catch (e) {
+      print('Error creating user: $e');
+      return {'success': false, 'message': 'Terjadi kesalahan koneksi'};
+    }
+  }
+
+  /// Update user name and/or email (admin only)
+  Future<Map<String, dynamic>> updateUser(
+    String userId, {
+    String? fullName,
+    String? email,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (fullName != null) body['full_name'] = fullName;
+      if (email != null) body['email'] = email;
+
+      final response = await _httpClient.patch(
+        '${AppConfig.usersPath}/$userId',
+        body: body,
+      );
+      return {
+        'success': response['success'] == true,
+        'message': response['message'] as String? ?? '',
+      };
+    } catch (e) {
+      print('Error updating user: $e');
+      return {'success': false, 'message': 'Terjadi kesalahan koneksi'};
+    }
+  }
+
+  /// Delete user (admin only) — returns 409 if user has tickets
+  Future<Map<String, dynamic>> deleteUser(String userId) async {
+    try {
+      final response = await _httpClient.delete(
+        '${AppConfig.usersPath}/$userId',
+      );
+      return {
+        'success': response['success'] == true,
+        'message': response['message'] as String? ?? '',
+      };
+    } catch (e) {
+      print('Error deleting user: $e');
+      return {'success': false, 'message': 'Terjadi kesalahan koneksi'};
+    }
+  }
 }

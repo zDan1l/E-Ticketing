@@ -104,7 +104,7 @@ class _DashboardPageState extends State<DashboardPage>
         setState(() {
           _errorMessage = 'Gagal memuat data: ${e.toString()}';
           _isLoading = false;
-          _stats = {'open': 0, 'in_progress': 0, 'closed': 0};
+          _stats = {'open': 0, 'in_progress': 0, 'closed': 0, 'assigned': 0};
           _recentTickets = [];
         });
       }
@@ -125,7 +125,7 @@ class _DashboardPageState extends State<DashboardPage>
     }
 
     final stats =
-        _stats ?? {'open': 0, 'in_progress': 0, 'closed': 0};
+        _stats ?? {'open': 0, 'in_progress': 0, 'closed': 0, 'assigned': 0};
     final recentTickets = _recentTickets;
     final totalTickets =
         (stats['open'] ?? 0) +
@@ -408,6 +408,20 @@ class _DashboardPageState extends State<DashboardPage>
                           ),
                         ),
                         const SizedBox(width: 12),
+                        Expanded(
+                          child: BentoCard(
+                            label: 'ASSIGNED',
+                            value: '${stats['assigned'] ?? 0}',
+                            icon: Icons.person_rounded,
+                            backgroundColor: AppColors.surfaceContainerHigh, //
+                            textColor: AppColors.onSurface, //
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
                         Expanded(
                           child: BentoCard(
                             label: 'TOTAL TIKET',
