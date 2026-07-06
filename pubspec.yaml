@@ -113,3 +113,8 @@ flutter_launcher_icons:
   # Optionally, you can also set adaptive icons for Android
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/app_icon.png"
+  web:
+    generate: true
+    image_path: "assets/app_icon.png"
+    background_color: "#3D31A3"
+    theme_color: "#3D31A3"
