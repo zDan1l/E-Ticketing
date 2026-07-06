@@ -272,91 +272,174 @@ class _TicketListPageState extends State<TicketListPage> {
           ? const FullPageLoading(message: 'Memuat tiket...')
           : Column(
               children: [
-                // Search bar with StyledInput
+                // Unified Filter Container
                 Container(
-                  color: AppColors.white,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: StyledInput(
-                    hint: 'Cari tiket...',
-                    controller: _searchController,
-                    prefixIcon: Icons.search_rounded,
-                    onSubmitted: (query) {
-                      setState(() => _searchQuery = query);
-                      _loadTickets();
-                    },
-                    onChanged: (value) {
-                      setState(() {}); // Update UI for clear button
-                    },
-                    suffixIcon: _searchController.text.isNotEmpty ? Icons.clear : null,
-                    onSuffixIconPressed: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                      });
-                      _loadTickets();
-                    },
-                  ),
-                ),
-                // Admin only: Helpdesk assignee filter
-                if (isAdmin && _helpdeskList.isNotEmpty)
-                  Container(
+                  decoration: BoxDecoration(
                     color: AppColors.white,
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.support_agent_rounded,
-                          size: 16,
-                          color: AppColors.onSurfaceVariant,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Search bar with StyledInput
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        child: StyledInput(
+                          hint: 'Cari tiket...',
+                          controller: _searchController,
+                          prefixIcon: Icons.search_rounded,
+                          onSubmitted: (query) {
+                            setState(() => _searchQuery = query);
+                            _loadTickets();
+                          },
+                          onChanged: (value) {
+                            setState(() {}); // Update UI for clear button
+                          },
+                          suffixIcon: _searchController.text.isNotEmpty ? Icons.clear : null,
+                          onSuffixIconPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                            _loadTickets();
+                          },
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Helpdesk:',
-                          style: AppTheme().bodyMedium.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
+                      ),
+                      
+                      // Status filter chips
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                        child: Row(
+                          children: _filters.map((filter) {
+                            final isSelected = _selectedFilter == filter['key'];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: _buildTabBadge(
+                                label: filter['label'],
+                                isSelected: isSelected,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedFilter = filter['key'];
+                                  });
+                                  _loadTickets();
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      
+                      // Admin only: Helpdesk assignee filter
+                      if (isAdmin && _helpdeskList.isNotEmpty) ...[
+                        const Divider(height: 1, thickness: 1, color: AppColors.outlineVariant),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.support_agent_rounded,
+                                size: 16,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Filter Helpdesk Staff:',
+                                style: AppTheme().bodyMedium.copyWith(
+                                  fontSize: 12,
+                                  color: AppColors.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                // "Semua" chip
-                                Padding(
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                          child: Row(
+                            children: [
+                              // "Semua" chip
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: _buildTabBadge(
+                                  label: 'Semua Staff',
+                                  isSelected: _selectedAssigneeId == null,
+                                  onTap: () {
+                                    setState(() => _selectedAssigneeId = null);
+                                    _loadTickets();
+                                  },
+                                ),
+                              ),
+                              ..._helpdeskList.map((helpdesk) {
+                                final isSelected = _selectedAssigneeId == helpdesk.id;
+                                return Padding(
                                   padding: const EdgeInsets.only(right: 8),
-                                  child: ChipBadge(
-                                    label: 'Semua',
-                                    isSelected: _selectedAssigneeId == null,
+                                  child: _buildTabBadge(
+                                    label: helpdesk.name,
+                                    isSelected: isSelected,
                                     onTap: () {
-                                      setState(() => _selectedAssigneeId = null);
+                                      setState(() => _selectedAssigneeId =
+                                          isSelected ? null : helpdesk.id);
                                       _loadTickets();
                                     },
                                   ),
-                                ),
-                                ..._helpdeskList.map((helpdesk) {
-                                  final isSelected = _selectedAssigneeId == helpdesk.id;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: ChipBadge(
-                                      label: helpdesk.name,
-                                      isSelected: isSelected,
-                                      onTap: () {
-                                        setState(() => _selectedAssigneeId =
-                                            isSelected ? null : helpdesk.id);
-                                        _loadTickets();
-                                      },
-                                    ),
-                                  );
-                                }),
-                              ],
-                            ),
+                                );
+                              }),
+                            ],
                           ),
                         ),
                       ],
-                    ),
+
+                      // Active Category / Priority Filters (if any)
+                      if (_selectedCategory != 'all' || _selectedPriority != 'all') ...[
+                        const Divider(height: 1, thickness: 1, color: AppColors.outlineVariant),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                'Filter Aktif:',
+                                style: AppTheme().bodyMedium.copyWith(
+                                  fontSize: 12,
+                                  color: AppColors.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (_selectedCategory != 'all')
+                                _buildActiveFilterBadge(
+                                  label: _getCategoryLabel(_selectedCategory),
+                                  onTap: () {
+                                    setState(() => _selectedCategory = 'all');
+                                    _loadTickets();
+                                  },
+                                ),
+                              if (_selectedPriority != 'all')
+                                _buildActiveFilterBadge(
+                                  label: 'Prioritas: ${_getPriorityLabel(_selectedPriority)}',
+                                  onTap: () {
+                                    setState(() => _selectedPriority = 'all');
+                                    _loadTickets();
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
+                ),
+                
+                // Error message (placed outside the unified filter container)
                 if (_errorMessage != null)
                   Container(
                     margin: const EdgeInsets.all(16),
@@ -383,32 +466,6 @@ class _TicketListPageState extends State<TicketListPage> {
                       ],
                     ),
                   ),
-                // Filter chips with ChipBadge
-                Container(
-                  color: AppColors.white,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-                    child: Row(
-                      children: _filters.map((filter) {
-                        final isSelected = _selectedFilter == filter['key'];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: ChipBadge(
-                            label: filter['label'],
-                            isSelected: isSelected,
-                            onTap: () {
-                              setState(() {
-                                _selectedFilter = filter['key'];
-                              });
-                              _loadTickets();
-                            },
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
                 // Ticket count
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -492,6 +549,81 @@ class _TicketListPageState extends State<TicketListPage> {
       },
     );
   }
+
+  Widget _buildTabBadge({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.primary 
+              : AppColors.surfaceContainerLow.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected 
+                ? AppColors.primary 
+                : AppColors.outlineVariant.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveFilterBadge({
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.close_rounded,
+              size: 14,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _TicketCard extends StatelessWidget {
@@ -538,21 +670,6 @@ class _TicketCard extends StatelessWidget {
         return 'Closed';
       default:
         return status;
-    }
-  }
-
-  String _categoryLabel(String cat) {
-    switch (cat) {
-      case 'hardware':
-        return '🖥️ Hardware';
-      case 'software':
-        return '💿 Software';
-      case 'network':
-        return '🌐 Network';
-      case 'other':
-        return '📋 Lainnya';
-      default:
-        return cat;
     }
   }
 
@@ -625,7 +742,7 @@ class _TicketCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                _categoryLabel(ticket.category),
+                _getCategoryLabel(ticket.category),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 13,
@@ -726,5 +843,36 @@ class _IconCount extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// Private Top-level Helpers
+String _getCategoryLabel(String cat) {
+  switch (cat) {
+    case 'hardware':
+      return '🖥️ Hardware';
+    case 'software':
+      return '💿 Software';
+    case 'network':
+      return '🌐 Network';
+    case 'other':
+      return '📋 Lainnya';
+    default:
+      return cat;
+  }
+}
+
+String _getPriorityLabel(String priority) {
+  switch (priority.toLowerCase()) {
+    case 'low':
+      return 'Low';
+    case 'medium':
+      return 'Medium';
+    case 'high':
+      return 'High';
+    case 'critical':
+      return 'Critical';
+    default:
+      return priority;
   }
 }

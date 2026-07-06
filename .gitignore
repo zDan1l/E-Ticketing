@@ -47,3 +47,6 @@ app.*.map.json
 *md
 
 backend-api
+
+*.txt
+api_collection_postman.json

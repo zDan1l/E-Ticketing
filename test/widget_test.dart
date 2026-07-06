@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:uts/main.dart';
+import 'package:eticketing/main.dart';
 
 void main() {
   test('ThemeNotifier toggles correctly', () {

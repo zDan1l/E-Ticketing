@@ -1,11 +1,11 @@
 {
-    "name": "uts",
-    "short_name": "uts",
+    "name": "E-Ticketing",
+    "short_name": "E-Ticketing",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#3D31A3",
+    "theme_color": "#3D31A3",
+    "description": "Sistem Manajemen Tiket Berbasis Mobile - Helpdesk ticket management system dengan Flutter",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

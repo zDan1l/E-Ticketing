@@ -69,6 +69,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -82,10 +83,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Center(
                   child: Container(
                     width: 40,
@@ -240,9 +242,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
               ],
             ),
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 
   Future<void> _toggleUserStatus(UserModel user) async {
