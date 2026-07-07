@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../services/auth_service.dart';
+import '../../../../providers/auth_provider.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LoginPage
@@ -30,7 +31,6 @@ class _LoginPageState extends State<LoginPage>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
-  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -50,7 +50,8 @@ class _LoginPageState extends State<LoginPage>
     );
     _animController.forward();
 
-    if (_authService.isAuthenticated) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacementNamed('/main');
       });
@@ -69,7 +70,8 @@ class _LoginPageState extends State<LoginPage>
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final result = await _authService.signIn(
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final result = await authProvider.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );

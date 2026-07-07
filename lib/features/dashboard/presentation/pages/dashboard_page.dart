@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../models/ticket_model.dart';
 import '../../../../models/role_model.dart';
-import '../../../../services/auth_service.dart';
-import '../../../../services/ticket_service.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../../providers/ticket_provider.dart';
 import '../../../../services/user_api_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -24,15 +25,11 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage>
     with WidgetsBindingObserver {
-  final AuthService _authService = AuthService();
-  final TicketService _ticketService = TicketService();
   final UserApiService _userApiService = UserApiService();
 
   bool _isLoading = true;
-  Map<String, int>? _stats;
   Map<String, dynamic>? _adminStats;
   String _selectedFilter = 'semua';
-  List<TicketModel> _recentTickets = [];
   String? _errorMessage;
   final TextEditingController _searchController = TextEditingController();
 
@@ -40,7 +37,9 @@ class _DashboardPageState extends State<DashboardPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   @override
@@ -62,13 +61,16 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final userRole = _authService.currentUserRole;
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+      final userRole = authProvider.currentUserRole;
 
       // Determine ticket limit based on user role
       // - User biasa: lihat semua tiket mereka sendiri (10 tiket terbaru)
@@ -77,10 +79,11 @@ class _DashboardPageState extends State<DashboardPage>
       final ticketLimit = userRole == UserRole.user ? 10 : 5;
 
       final futures = <Future>[
-        _ticketService.getTicketStats(userRole: userRole),
-        _ticketService.getTickets(
+        ticketProvider.loadStats(userRole: userRole, silent: true),
+        ticketProvider.loadTickets(
           userRole: userRole,
           limit: ticketLimit,
+          silent: true,
         ),
       ];
 
@@ -91,15 +94,10 @@ class _DashboardPageState extends State<DashboardPage>
       final results = await Future.wait(futures);
 
       if (mounted) {
-        final ticketsResponse = results[1] as Map<String, dynamic>;
-        final tickets = ticketsResponse['tickets'] as List<TicketModel>? ?? [];
-
         setState(() {
-          _stats = results[0] as Map<String, int>;
           if (userRole == UserRole.admin && results.length > 2) {
             _adminStats = results[2] as Map<String, dynamic>?;
           }
-          _recentTickets = tickets;
           _isLoading = false;
         });
       }
@@ -108,8 +106,6 @@ class _DashboardPageState extends State<DashboardPage>
         setState(() {
           _errorMessage = 'Gagal memuat data: ${e.toString()}';
           _isLoading = false;
-          _stats = {'open': 0, 'in_progress': 0, 'closed': 0, 'assigned': 0};
-          _recentTickets = [];
         });
       }
     }
@@ -117,10 +113,13 @@ class _DashboardPageState extends State<DashboardPage>
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = _authService.currentUser;
+    final authProvider = context.watch<AuthProvider>();
+    final ticketProvider = context.watch<TicketProvider>();
+    
+    final currentUser = authProvider.currentUser;
     final userRole = currentUser?.role ?? UserRole.user;
 
-    if (_isLoading) {
+    if (_isLoading || ticketProvider.isLoading) {
       return Scaffold(
         backgroundColor: AppColors.canvas,
         body: SafeArea(
@@ -130,9 +129,8 @@ class _DashboardPageState extends State<DashboardPage>
       );
     }
 
-    final stats =
-        _stats ?? {'open': 0, 'in_progress': 0, 'closed': 0, 'assigned': 0};
-    final recentTickets = _recentTickets;
+    final stats = ticketProvider.stats;
+    final recentTickets = ticketProvider.tickets;
     final totalTickets =
         (stats['open'] ?? 0) +
         (stats['in_progress'] ?? 0) +
@@ -476,10 +474,14 @@ class _DashboardPageState extends State<DashboardPage>
                                 padding: const EdgeInsets.only(bottom: 12),
                                 child: _RecentTicketCard(
                                   ticket: ticket,
-                                  onTap: () {
-                                    Navigator.of(
+                                  onTap: () async {
+                                    final result = await Navigator.of(
                                       context,
                                     ).pushNamed('/ticket-detail', arguments: ticket);
+                                    if (result == true && mounted) {
+                                      context.showSuccessSnackBar('Tiket berhasil dihapus');
+                                    }
+                                    _loadData();
                                   },
                                 ),
                               );

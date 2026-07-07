@@ -12,8 +12,8 @@ class AppConfig {
     const ngrokUrl = 'https://celena-draughtiest-marylee.ngrok-free.dev';
     
     try {
-      // Perform a quick connectivity test to ngrok endpoint (e.g. login endpoint)
-      final uri = Uri.parse('$ngrokUrl/api/auth/login');
+      // Perform a quick connectivity test to ngrok endpoint (e.g. health endpoint)
+      final uri = Uri.parse('$ngrokUrl/api/health');
       final response = await http.get(
         uri,
         headers: {'ngrok-skip-browser-warning': 'true'},

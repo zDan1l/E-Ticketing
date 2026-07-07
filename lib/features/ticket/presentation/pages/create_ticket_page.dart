@@ -1,9 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../services/ticket_service.dart';
+import '../../../../providers/ticket_provider.dart';
 import '../../../../services/attachment_service.dart';
 
 class CreateTicketPage extends StatefulWidget {
@@ -22,7 +23,6 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
   bool _isLoading = false;
   final List<XFile> _attachedFiles = [];
   final Map<String, Uint8List> _fileBytesCache = {};
-  final TicketService _ticketService = TicketService();
   final AttachmentService _attachmentService = AttachmentService();
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -45,8 +45,10 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
     if (_formKey.currentState!.validate() && _selectedCategory != null) {
       setState(() => _isLoading = true);
 
+      final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+
       // Create ticket with user-selected category and priority
-      final ticket = await _ticketService.createTicket(
+      final ticket = await ticketProvider.createTicket(
         title: _titleController.text.trim(),
         category: _selectedCategory!,
         priority: _selectedPriority,

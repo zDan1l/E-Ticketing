@@ -8,6 +8,8 @@ import '../../../../models/role_model.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/ticket_service.dart';
 import '../../../../services/attachment_service.dart';
+import 'package:provider/provider.dart';
+import '../../../../providers/ticket_provider.dart';
 import '../../../../shared/widgets/assign_ticket_dialog.dart';
 import '../../../../shared/widgets/automatic_status_actions.dart';
 import '../../../../shared/components/components.dart';
@@ -113,7 +115,6 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       if (success) {
         _commentController.clear();
         await _loadTimelineAndComments();
-        DashboardPage.dashboardKey.currentState?.refreshDashboard();
 
         context.showSuccessSnackBar('Komentar berhasil ditambahkan');
       } else {
@@ -208,7 +209,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     }
 
     // Finish ticket action
-    final success = await _ticketService.finishTicket(_ticket.id);
+    final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+    final success = await ticketProvider.finishTicket(_ticket.id);
 
     if (success) {
       setState(() {
@@ -218,7 +220,6 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         );
       });
 
-      DashboardPage.dashboardKey.currentState?.refreshDashboard();
       await _loadTimelineAndComments();
 
       if (mounted) {
@@ -232,9 +233,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   }
 
   void _handleAssign(UserModel assignee) async {
+    final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
     final success = assignee.id.isEmpty
         ? true
-        : await _ticketService.assignTicket(_ticket.id, assignee.id);
+        : await ticketProvider.assignTicket(_ticket.id, assignee.id);
 
     if (success) {
       setState(() {
@@ -245,7 +247,6 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           updatedAt: DateTime.now(),
         );
       });
-      DashboardPage.dashboardKey.currentState?.refreshDashboard();
 
       if (mounted) {
         context.showSuccessSnackBar(
@@ -265,7 +266,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   void _showDeleteDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Hapus Tiket', style: AppTheme().headlineSmall),
         content: Text(
           'Apakah Anda yakin ingin menghapus tiket ini? '
@@ -278,22 +279,20 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           ClayButton(
             text: 'Batal',
             isGhost: true,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
           ),
           ClayButton(
             text: 'Hapus',
             backgroundColor: AppColors.error,
             textColor: AppColors.onError,
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
+              final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
               final success =
-                  await _ticketService.deleteTicket(_ticket.id);
+                  await ticketProvider.deleteTicket(_ticket.id);
               if (success) {
                 if (mounted) {
-                  context.showSuccessSnackBar('Tiket berhasil dihapus', duration: const Duration(seconds: 2));
-                  Navigator.of(context).pop();
-                  DashboardPage.dashboardKey.currentState
-                      ?.refreshDashboard();
+                  Navigator.of(context).pop(true);
                 }
               } else {
                 if (mounted) {
@@ -310,7 +309,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   void _showDeleteAttachmentDialog(AttachmentModel attachment) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Hapus Lampiran', style: AppTheme().headlineSmall),
         content: Text(
           'Apakah Anda yakin ingin menghapus lampiran '
@@ -323,14 +322,14 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           ClayButton(
             text: 'Batal',
             isGhost: true,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
           ),
           ClayButton(
             text: 'Hapus',
             backgroundColor: AppColors.error,
             textColor: AppColors.onError,
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               final success = await _ticketService.deleteAttachment(
                   _ticket.id, attachment.id);
               if (success) {

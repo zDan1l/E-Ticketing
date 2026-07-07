@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../main.dart';
 import '../../../../models/role_model.dart';
-import '../../../../services/auth_service.dart';
+import '../../../../providers/auth_provider.dart';
 import '../../../../services/ticket_service.dart';
 import '../../../../shared/components/components.dart';
 
@@ -15,7 +16,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final AuthService _authService = AuthService();
   final TicketService _ticketService = TicketService();
 
   Map<String, int>? _ticketStats;
@@ -24,14 +24,14 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _authService.initialize();
     _loadTicketStats();
   }
 
   Future<void> _loadTicketStats() async {
     try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final stats = await _ticketService.getTicketStats(
-        userRole: _authService.currentUserRole,
+        userRole: authProvider.currentUserRole,
       );
 
       if (mounted) {
@@ -49,6 +49,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showRoleSwitcher() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -62,7 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: UserRole.values.map((role) {
-            final isSelected = _authService.currentUser?.role == role;
+            final isSelected = authProvider.currentUser?.role == role;
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: ListTile(
@@ -98,6 +99,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       body: CustomScrollView(
@@ -149,8 +153,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 24),
                       // Avatar
                       UserAvatar(
-                        avatar: _authService.currentUser?.avatar,
-                        name: _authService.currentUser?.name,
+                        avatar: currentUser?.avatar,
+                        name: currentUser?.name,
                         size: 88,
                         fontSize: 32,
                         textColor: AppColors.primary,
@@ -163,7 +167,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        _authService.currentUser?.name ?? 'Guest',
+                        currentUser?.name ?? 'Guest',
                         style: AppTheme().headlineMedium.copyWith(
                           color: AppColors.onPrimary,
                           fontWeight: FontWeight.w800,
@@ -171,7 +175,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _authService.currentUser?.email ?? '',
+                        currentUser?.email ?? '',
                         style: AppTheme().bodyMedium.copyWith(
                           color: AppColors.onPrimary.withValues(alpha: 0.85),
                           fontWeight: FontWeight.w500,
@@ -190,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         child: Text(
-                          _authService.currentUser?.role.label.toUpperCase() ?? 'USER',
+                          currentUser?.role.label.toUpperCase() ?? 'USER',
                           style: const TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: 10,
@@ -325,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                       // Admin menu - only show for admin users
-                      if (_authService.currentUser?.role == UserRole.admin)
+                      if (currentUser?.role == UserRole.admin)
                         _MenuItem(
                           icon: Icons.admin_panel_settings_rounded,
                           title: 'Kelola Pengguna',
@@ -334,7 +338,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             Navigator.of(context).pushNamed('/user-management');
                           },
                         ),
-                      if (_authService.currentUser?.role == UserRole.admin)
+                      if (currentUser?.role == UserRole.admin)
                         _MenuItem(
                           icon: Icons.people_outline_rounded,
                           title: 'Daftar Helpdesk',
@@ -343,7 +347,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             Navigator.of(context).pushNamed('/helpdesk-list');
                           },
                         ),
-                      if (_authService.currentUser?.role == UserRole.admin)
+                      if (currentUser?.role == UserRole.admin)
                         _MenuItem(
                           icon: Icons.history_rounded,
                           title: 'Aktivitas Sistem',
@@ -352,7 +356,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             Navigator.of(context).pushNamed('/activity-logs');
                           },
                         ),
-                      if (_authService.currentUser?.role == UserRole.admin)
+                      if (currentUser?.role == UserRole.admin)
                         _MenuItem(
                           icon: Icons.dashboard_rounded,
                           title: 'Statistik Admin',
@@ -452,7 +456,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             textColor: AppColors.surface,
                             onPressed: () async {
                               Navigator.pop(ctx);
-                              await _authService.signOut();
+                              await authProvider.logout();
                               if (mounted) {
                                 Navigator.of(context).pushReplacementNamed('/login');
                               }

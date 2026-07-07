@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../services/auth_service.dart';
+import '../../../../providers/auth_provider.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -16,13 +17,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   bool _isLoading = false;
-  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: _authService.currentUser?.name ?? '');
-    _emailController = TextEditingController(text: _authService.currentUser?.email ?? '');
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _nameController = TextEditingController(text: authProvider.currentUser?.name ?? '');
+    _emailController = TextEditingController(text: authProvider.currentUser?.email ?? '');
   }
 
   @override
@@ -35,7 +36,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _handleSave() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      final result = await _authService.updateProfile(
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final result = await authProvider.updateProfile(
         fullName: _nameController.text,
       );
 
@@ -64,7 +66,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       if (image != null) {
         setState(() => _isLoading = true);
-        final result = await _authService.uploadAvatar(image);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final result = await authProvider.uploadAvatar(image);
 
         if (mounted) {
           setState(() => _isLoading = false);
@@ -82,7 +85,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _deleteAvatar() async {
     setState(() => _isLoading = true);
-    final result = await _authService.deleteAvatar();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final result = await authProvider.deleteAvatar();
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -96,6 +100,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
@@ -145,8 +152,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   Stack(
                     children: [
                       UserAvatar(
-                        avatar: _authService.currentUser?.avatar,
-                        name: _authService.currentUser?.name,
+                        avatar: currentUser?.avatar,
+                        name: currentUser?.name,
                         size: 90,
                         fontSize: 32,
                         textColor: AppColors.primary,

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../models/ticket_model.dart';
 import '../../../../models/role_model.dart';
-import '../../../../services/auth_service.dart';
-import '../../../../services/ticket_service.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../../providers/ticket_provider.dart';
 import '../../../../services/user_api_service.dart';
 import '../../../../shared/components/components.dart';
+import '../../../../shared/widgets/main_navigation.dart';
 
 class TicketListPage extends StatefulWidget {
   const TicketListPage({super.key});
@@ -46,27 +48,22 @@ class _TicketListPageState extends State<TicketListPage> {
     {'key': 'critical', 'label': 'Critical'},
   ];
 
-  final TicketService _ticketService = TicketService();
-  final AuthService _authService = AuthService();
   final UserApiService _userApiService = UserApiService();
   final TextEditingController _searchController = TextEditingController();
-
-  bool _isLoading = true;
-  List<TicketModel> _allTickets = [];
-  Map<String, dynamic>? _pagination;
-  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadTickets();
+    
     // Load helpdesk list for admin filter
-    if (_authService.currentUserRole == UserRole.admin) {
-      _loadHelpdeskStaff();
-    }
-
-    // Check if there's a search query from navigation
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      _loadTickets();
+      if (authProvider.currentUserRole == UserRole.admin) {
+        _loadHelpdeskStaff();
+      }
+
+      // Check if there's a search query from navigation
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null && args['searchQuery'] != null) {
         setState(() {
@@ -92,41 +89,22 @@ class _TicketListPageState extends State<TicketListPage> {
   }
 
   Future<void> _loadTickets() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final response = await _ticketService.getTickets(
-        userRole: _authService.currentUserRole,
-        searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
-        status: _selectedFilter != 'all' ? _selectedFilter : null,
-        category: _selectedCategory != 'all' ? _selectedCategory : null,
-        priority: _selectedPriority != 'all' ? _selectedPriority : null,
-        assigneeId: _selectedAssigneeId, // Pass helpdesk filter for admin
-      );
-
-      if (mounted) {
-        setState(() {
-          _allTickets = response['tickets'] as List<TicketModel>? ?? [];
-          _pagination = response['pagination'] as Map<String, dynamic>?;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Gagal memuat tiket: ${e.toString()}';
-          _isLoading = false;
-          _allTickets = [];
-        });
-      }
-    }
+    final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    await ticketProvider.loadTickets(
+      userRole: authProvider.currentUserRole,
+      searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
+      status: _selectedFilter != 'all' ? _selectedFilter : null,
+      category: _selectedCategory != 'all' ? _selectedCategory : null,
+      priority: _selectedPriority != 'all' ? _selectedPriority : null,
+      assigneeId: _selectedAssigneeId,
+    );
   }
 
   List<TicketModel> get _filteredTickets {
-    var tickets = _allTickets;
+    final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+    var tickets = ticketProvider.tickets;
 
     // Apply status filter
     if (_selectedFilter != 'all') {
@@ -243,8 +221,10 @@ class _TicketListPageState extends State<TicketListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ticketProvider = context.watch<TicketProvider>();
+    final authProvider = context.watch<AuthProvider>();
     final tickets = _filteredTickets;
-    final isAdmin = _authService.currentUserRole == UserRole.admin;
+    final isAdmin = authProvider.currentUserRole == UserRole.admin;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -268,7 +248,7 @@ class _TicketListPageState extends State<TicketListPage> {
           const SizedBox(width: 12),
         ],
       ),
-      body: _isLoading
+      body: ticketProvider.isLoading
           ? const FullPageLoading(message: 'Memuat tiket...')
           : Column(
               children: [
@@ -440,7 +420,7 @@ class _TicketListPageState extends State<TicketListPage> {
                 ),
                 
                 // Error message (placed outside the unified filter container)
-                if (_errorMessage != null)
+                if (ticketProvider.errorMessage != null)
                   Container(
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(12),
@@ -457,7 +437,7 @@ class _TicketListPageState extends State<TicketListPage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            _errorMessage!,
+                            ticketProvider.errorMessage!,
                             style: AppTheme().bodyMedium.copyWith(
                               color: AppColors.error,
                             ),
@@ -502,10 +482,15 @@ class _TicketListPageState extends State<TicketListPage> {
                             return _TicketCard(
                               ticket: ticket,
                               onTap: () async {
-                                await Navigator.of(context).pushNamed(
+                                final result = await Navigator.of(context).pushNamed(
                                   '/ticket-detail',
                                   arguments: ticket,
                                 );
+                                if (result == true && mounted) {
+                                  context.showSuccessSnackBar('Tiket berhasil dihapus');
+                                  final mainNavState = context.findAncestorStateOfType<MainNavigationState>();
+                                  mainNavState?.setIndex(0);
+                                }
                                 // Refresh ticket list when returning from detail page
                                 // to show any status updates
                                 _loadTickets();

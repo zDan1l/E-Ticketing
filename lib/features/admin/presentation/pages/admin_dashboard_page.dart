@@ -385,15 +385,30 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
 
     return Column(
-      children: _latestTickets.map((ticket) => _LatestTicketCard(ticket: ticket)).toList(),
+      children: _latestTickets
+          .map((ticket) => _LatestTicketCard(
+                ticket: ticket,
+                  onTap: () async {
+                    final result = await Navigator.of(context).pushNamed(
+                      '/ticket-detail',
+                      arguments: ticket,
+                    );
+                    if (result == true && mounted) {
+                      context.showSuccessSnackBar('Tiket berhasil dihapus');
+                    }
+                    _loadDashboardStats();
+                  },
+              ))
+          .toList(),
     );
   }
 }
 
 class _LatestTicketCard extends StatelessWidget {
   final TicketModel ticket;
+  final VoidCallback? onTap;
 
-  const _LatestTicketCard({required this.ticket});
+  const _LatestTicketCard({required this.ticket, this.onTap});
 
   TicketStatus _ticketStatus(String status) {
     switch (status) {
@@ -463,12 +478,7 @@ class _LatestTicketCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return StyledCard(
-      onTap: () {
-        Navigator.of(context).pushNamed(
-          '/ticket-detail',
-          arguments: ticket,
-        );
-      },
+      onTap: onTap,
       padding: const EdgeInsets.all(18),
       margin: const EdgeInsets.only(bottom: 12),
       child: Column(

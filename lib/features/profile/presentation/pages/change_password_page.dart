@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../services/auth_service.dart';
+import '../../../../providers/auth_provider.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -19,7 +20,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool _obscureNew = true;
   bool _obscureConfirm = true;
   bool _isLoading = false;
-  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -33,7 +33,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final result = await _authService.updatePassword(
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final result = await authProvider.changePassword(
         currentPassword: _currentPasswordController.text,
         newPassword: _newPasswordController.text,
       );

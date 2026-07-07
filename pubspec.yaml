@@ -51,6 +51,12 @@ dependencies:
   flutter_inset_shadow: ^2.0.3
   path: ^1.8.0
 
+  # State management
+  provider: ^6.1.1
+
+  # Local notifications
+  flutter_local_notifications: ^17.2.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

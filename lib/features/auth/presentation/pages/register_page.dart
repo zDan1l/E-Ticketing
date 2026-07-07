@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../services/auth_service.dart';
+import '../../../../providers/auth_provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -23,7 +24,6 @@ class _RegisterPageState extends State<RegisterPage>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
-  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -58,7 +58,8 @@ class _RegisterPageState extends State<RegisterPage>
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final result = await _authService.signUp(
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final result = await authProvider.register(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: _nameController.text.trim(),

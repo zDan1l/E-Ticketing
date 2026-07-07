@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../models/notification_model.dart';
 import '../../../../models/ticket_model.dart';
-import '../../../../services/notification_service.dart';
+import '../../../../providers/notification_provider.dart';
 import '../../../../services/ticket_service.dart';
+import '../../../../shared/widgets/main_navigation.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -14,77 +16,35 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  final NotificationService _notifService = NotificationService();
   final TicketService _ticketService = TicketService();
-
-  List<NotificationModel> _notifications = [];
-  bool _isLoading = true;
-  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNotifications();
+    });
   }
 
   Future<void> _loadNotifications() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final notifs = await _notifService.getNotifications();
-
-      if (mounted) {
-        setState(() {
-          _notifications = notifs;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Gagal memuat notifikasi: ${e.toString()}';
-          _isLoading = false;
-          _notifications = [];
-        });
-      }
-    }
+    final notifProvider = Provider.of<NotificationProvider>(context, listen: false);
+    await notifProvider.loadNotifications();
   }
 
   Future<void> _markAllRead() async {
-    final success = await _notifService.markAllAsRead();
+    final notifProvider = Provider.of<NotificationProvider>(context, listen: false);
+    final success = await notifProvider.markAllAsRead();
 
-    if (success) {
-      await _loadNotifications();
-
-      if (mounted) {
-        context.showSuccessSnackBar('Semua notifikasi ditandai sudah dibaca');
-      }
-    } else {
-      if (mounted) {
-        context.showErrorSnackBar('Gagal menandai semua sebagai dibaca');
-      }
+    if (success && mounted) {
+      context.showSuccessSnackBar('Semua notifikasi ditandai sudah dibaca');
+    } else if (mounted) {
+      context.showErrorSnackBar('Gagal menandai semua sebagai dibaca');
     }
   }
 
-  Future<void> _markAsRead(String notifId, int index) async {
-    final success = await _notifService.markNotificationAsRead(notifId);
-
-    if (success && mounted) {
-      setState(() {
-        _notifications[index] = NotificationModel(
-          id: _notifications[index].id,
-          type: _notifications[index].type,
-          title: _notifications[index].title,
-          body: _notifications[index].body,
-          ticketId: _notifications[index].ticketId,
-          isRead: true,
-          createdAt: _notifications[index].createdAt,
-        );
-      });
-    }
+  Future<void> _markAsRead(String notifId) async {
+    final notifProvider = Provider.of<NotificationProvider>(context, listen: false);
+    await notifProvider.markAsRead(notifId);
   }
 
   IconData _notifIcon(String type) {
@@ -131,6 +91,11 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final notifProvider = context.watch<NotificationProvider>();
+    final notifications = notifProvider.notifications;
+    final isLoading = notifProvider.isLoading;
+    final errorMessage = notifProvider.errorMessage;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
@@ -140,7 +105,7 @@ class _NotificationPageState extends State<NotificationPage> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         actions: [
-          if (_notifications.isNotEmpty && _notifications.any((n) => !n.isRead))
+          if (notifications.isNotEmpty && notifications.any((n) => !n.isRead))
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: TextButton.icon(
@@ -157,20 +122,20 @@ class _NotificationPageState extends State<NotificationPage> {
             ),
         ],
       ),
-      body: _isLoading
+      body: isLoading
           ? const FullPageLoading(message: 'Memuat notifikasi...')
-          : _errorMessage != null
+          : errorMessage != null
               ? EmptyStates.serverError(
                   onRetry: _loadNotifications,
                 )
-              : _notifications.isEmpty
+              : notifications.isEmpty
                   ? EmptyStates.noNotifications()
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                      itemCount: _notifications.length,
+                      itemCount: notifications.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
-                        final notif = _notifications[index];
+                        final notif = notifications[index];
                         return _NotifItem(
                           notif: notif,
                           icon: _notifIcon(notif.type),
@@ -179,7 +144,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           onTap: () async {
                             // Mark as read
                             if (!notif.isRead) {
-                              await _markAsRead(notif.id, index);
+                              await _markAsRead(notif.id);
                             }
                             // Navigate to ticket if applicable
                             if (notif.ticketId != null && mounted) {
@@ -187,10 +152,16 @@ class _NotificationPageState extends State<NotificationPage> {
                               try {
                                 final ticket = await _ticketService.getTicketById(notif.ticketId!);
                                 if (ticket != null && mounted) {
-                                  Navigator.of(context).pushNamed(
+                                  final result = await Navigator.of(context).pushNamed(
                                     '/ticket-detail',
                                     arguments: ticket,
                                   );
+                                  if (result == true && mounted) {
+                                    context.showSuccessSnackBar('Tiket berhasil dihapus');
+                                    final mainNavState = context.findAncestorStateOfType<MainNavigationState>();
+                                    mainNavState?.setIndex(0);
+                                  }
+                                  _loadNotifications();
                                 }
                               } catch (e) {
                                 // Ignore navigation errors

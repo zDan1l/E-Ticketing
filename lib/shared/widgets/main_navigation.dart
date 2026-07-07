@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../shared/components/components.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/theme/app_theme.dart';
@@ -7,40 +8,47 @@ import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/ticket/presentation/pages/ticket_list_page.dart';
 import '../../features/notification/presentation/pages/notification_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
-import '../../services/notification_service.dart';
+import '../../providers/notification_provider.dart';
+import '../../providers/ticket_provider.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<MainNavigation> createState() => MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
-  final NotificationService _notifService = NotificationService();
-  int _unreadCount = 0;
+
+  void setIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadUnreadCount();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifProvider = Provider.of<NotificationProvider>(context, listen: false);
+      notifProvider.loadNotifications();
+      notifProvider.startPeriodicFetch();
+      
+      final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+      ticketProvider.startPeriodicFetch();
+    });
   }
 
-  Future<void> _loadUnreadCount() async {
+  @override
+  void dispose() {
     try {
-      final count = await _notifService.getUnreadNotificationsCount().timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => 0,
-      );
-      if (mounted) {
-        setState(() {
-          _unreadCount = count;
-        });
-      }
-    } catch (e) {
-      print('Error loading unread count: $e');
-    }
+      final notifProvider = Provider.of<NotificationProvider>(context, listen: false);
+      notifProvider.stopPeriodicFetch();
+      final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+      ticketProvider.stopPeriodicFetch();
+    } catch (_) {}
+    super.dispose();
   }
 
   final _pages = [
@@ -53,6 +61,8 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final unreadCount = context.watch<NotificationProvider>().unreadCount;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       extendBody: true,
@@ -69,17 +79,16 @@ class _MainNavigationState extends State<MainNavigation> {
         onPressed: () async {
           final result = await Navigator.of(context).pushNamed('/create-ticket');
           if (result == true && mounted) {
-            final dashboardState = DashboardPage.dashboardKey.currentState;
-            if (dashboardState != null) {
-              dashboardState.refreshDashboard();
-            }
+            final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+            ticketProvider.loadTickets(silent: true);
+            ticketProvider.loadStats(silent: true);
           }
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _StyleGuideBottomNav(
         currentIndex: _currentIndex,
-        unreadCount: _unreadCount,
+        unreadCount: unreadCount,
         onIndexChange: (index) {
           setState(() {
             _currentIndex = index;
