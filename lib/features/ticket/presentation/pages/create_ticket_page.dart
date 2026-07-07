@@ -72,38 +72,19 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
 
           setState(() => _isLoading = false);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Tiket berhasil dibuat${_attachedFiles.isNotEmpty ? " dengan ${_attachedFiles.length} lampiran" : ""}!',
-                style: const TextStyle(color: AppColors.onBackground),
-              ),
-              backgroundColor: AppColors.successAccent,
-              behavior: SnackBarBehavior.floating,
-            ),
+          context.showSuccessSnackBar(
+            'Tiket berhasil dibuat${_attachedFiles.isNotEmpty ? " dengan ${_attachedFiles.length} lampiran" : ""}!',
           );
           // Return true to indicate success
           Navigator.of(context).pop(true);
         } else {
           setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Gagal membuat tiket. Silakan coba lagi.'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.showErrorSnackBar('Gagal membuat tiket. Silakan coba lagi.');
         }
       }
     } else {
       if (_selectedCategory == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Mohon lengkapi kategori'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showErrorSnackBar('Mohon lengkapi kategori');
       }
     }
   }
@@ -135,13 +116,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Gagal mengambil foto: $e'),
-                        backgroundColor: AppColors.error,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    context.showErrorSnackBar('Gagal mengambil foto: $e');
                   }
                 }
               },
@@ -165,13 +140,7 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Gagal memilih gambar: $e'),
-                        backgroundColor: AppColors.error,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    context.showErrorSnackBar('Gagal memilih gambar: $e');
                   }
                 }
               },

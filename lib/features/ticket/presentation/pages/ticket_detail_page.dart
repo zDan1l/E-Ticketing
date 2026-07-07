@@ -115,25 +115,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         await _loadTimelineAndComments();
         DashboardPage.dashboardKey.currentState?.refreshDashboard();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Komentar berhasil ditambahkan'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        context.showSuccessSnackBar('Komentar berhasil ditambahkan');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Gagal menambahkan komentar'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        context.showErrorSnackBar('Gagal menambahkan komentar');
       }
     }
   }
@@ -202,13 +186,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     // Only helpdesk can perform automatic actions
     if (currentUser?.role != UserRole.helpdesk) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Hanya helpdesk yang dapat melakukan aksi ini'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        context.showErrorSnackBar('Hanya helpdesk yang dapat melakukan aksi ini', duration: const Duration(seconds: 2));
       }
       return;
     }
@@ -216,13 +194,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     // Check if ticket is assigned to current user
     if (_ticket.assigneeId != currentUser?.id) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tiket ini tidak ditugaskan kepada Anda'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        context.showErrorSnackBar('Tiket ini tidak ditugaskan kepada Anda', duration: const Duration(seconds: 2));
       }
       return;
     }
@@ -230,13 +202,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     // Only allow finish action for In Progress tickets
     if (!_ticket.isInProgress) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Hanya tiket dengan status In Progress yang dapat diselesaikan'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        context.showErrorSnackBar('Hanya tiket dengan status In Progress yang dapat diselesaikan', duration: const Duration(seconds: 2));
       }
       return;
     }
@@ -256,23 +222,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       await _loadTimelineAndComments();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tiket berhasil diselesaikan'),
-            backgroundColor: AppColors.successAccent,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        context.showSuccessSnackBar('Tiket berhasil diselesaikan', duration: const Duration(seconds: 2));
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal menyelesaikan tiket'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        context.showErrorSnackBar('Gagal menyelesaikan tiket', duration: const Duration(seconds: 2));
       }
     }
   }
@@ -294,25 +248,16 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       DashboardPage.dashboardKey.currentState?.refreshDashboard();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(assignee.id.isEmpty
-                ? 'Tiket berhasil di-unassign'
-                : 'Tiket di-assign ke ${assignee.name}'),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 2),
-          ),
+        context.showSuccessSnackBar(
+          assignee.id.isEmpty
+              ? 'Tiket berhasil di-unassign'
+              : 'Tiket di-assign ke ${assignee.name}',
+          duration: const Duration(seconds: 2),
         );
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal mengassign tiket'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        context.showErrorSnackBar('Gagal mengassign tiket', duration: const Duration(seconds: 2));
       }
     }
   }
@@ -345,29 +290,14 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                   await _ticketService.deleteTicket(_ticket.id);
               if (success) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        'Tiket berhasil dihapus',
-                        style: TextStyle(color: AppColors.onBackground),
-                      ),
-                      backgroundColor: AppColors.successAccent,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  context.showSuccessSnackBar('Tiket berhasil dihapus', duration: const Duration(seconds: 2));
                   Navigator.of(context).pop();
                   DashboardPage.dashboardKey.currentState
                       ?.refreshDashboard();
                 }
               } else {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gagal menghapus tiket'),
-                      backgroundColor: AppColors.error,
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  context.showErrorSnackBar('Gagal menghapus tiket', duration: const Duration(seconds: 2));
                 }
               }
             },
@@ -410,26 +340,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     _ticket = _ticket.copyWith(
                         attachmentsCount: _attachments.length);
                   });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        'Lampiran berhasil dihapus',
-                        style: TextStyle(color: AppColors.onBackground),
-                      ),
-                      backgroundColor: AppColors.successAccent,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  context.showSuccessSnackBar('Lampiran berhasil dihapus', duration: const Duration(seconds: 2));
                 }
               } else {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gagal menghapus lampiran'),
-                      backgroundColor: AppColors.error,
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  context.showErrorSnackBar('Gagal menghapus lampiran', duration: const Duration(seconds: 2));
                 }
               }
             },

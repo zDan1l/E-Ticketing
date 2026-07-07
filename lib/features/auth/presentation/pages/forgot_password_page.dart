@@ -62,13 +62,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
         });
 
         if (result['success'] != true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Gagal mengirim email reset'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.showErrorSnackBar(result['message'] ?? 'Gagal mengirim email reset');
         }
       }
     }

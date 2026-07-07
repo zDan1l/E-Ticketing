@@ -254,23 +254,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Status pengguna ${user.name} berhasil diperbarui'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showSuccessSnackBar('Status pengguna ${user.name} berhasil diperbarui');
         _loadUsers();
       } else {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal memperbarui status pengguna'),
-            backgroundColor: Color(0xFF6B7280),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showErrorSnackBar('Gagal memperbarui status pengguna');
       }
     }
   }
@@ -313,23 +301,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Peran ${user.name} berhasil diubah menjadi ${role.label}'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showSuccessSnackBar('Peran ${user.name} berhasil diubah menjadi ${role.label}');
         _loadUsers();
       } else {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal mengubah peran pengguna'),
-            backgroundColor: Color(0xFF6B7280),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showErrorSnackBar('Gagal mengubah peran pengguna');
       }
     }
   }
@@ -421,15 +397,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   role: selectedRole,
                 );
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(result['success'] == true
-                        ? 'Pengguna berhasil ditambahkan'
-                        : result['message'] as String? ?? 'Gagal menambahkan pengguna'),
-                    backgroundColor: result['success'] == true ? AppColors.primary : AppColors.error,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                if (result['success'] == true) {
+                  context.showSuccessSnackBar('Pengguna berhasil ditambahkan');
+                } else {
+                  context.showErrorSnackBar(result['message'] as String? ?? 'Gagal menambahkan pengguna');
+                }
                 if (result['success'] == true) _loadUsers();
               },
               child: const Text('Simpan'),
@@ -487,15 +459,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 email: emailCtrl.text.trim() != user.email ? emailCtrl.text.trim() : null,
               );
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(result['success'] == true
-                      ? 'Data pengguna berhasil diperbarui'
-                      : result['message'] as String? ?? 'Gagal memperbarui data'),
-                  backgroundColor: result['success'] == true ? AppColors.primary : AppColors.error,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              if (result['success'] == true) {
+                context.showSuccessSnackBar('Data pengguna berhasil diperbarui');
+              } else {
+                context.showErrorSnackBar(result['message'] as String? ?? 'Gagal memperbarui data');
+              }
               if (result['success'] == true) _loadUsers();
             },
             child: const Text('Simpan'),
@@ -533,15 +501,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
               Navigator.pop(context);
               final result = await _userApiService.deleteUser(user.id);
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(result['success'] == true
-                      ? 'Pengguna berhasil dihapus'
-                      : result['message'] as String? ?? 'Gagal menghapus pengguna'),
-                  backgroundColor: result['success'] == true ? AppColors.primary : AppColors.error,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              if (result['success'] == true) {
+                context.showSuccessSnackBar('Pengguna berhasil dihapus');
+              } else {
+                context.showErrorSnackBar(result['message'] as String? ?? 'Gagal menghapus pengguna');
+              }
               if (result['success'] == true) _loadUsers();
             },
             child: const Text('Hapus'),

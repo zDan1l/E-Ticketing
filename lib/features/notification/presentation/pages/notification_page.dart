@@ -60,26 +60,11 @@ class _NotificationPageState extends State<NotificationPage> {
       await _loadNotifications();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Semua notifikasi ditandai sudah dibaca',
-              style: const TextStyle(color: AppColors.onBackground),
-            ),
-            backgroundColor: AppColors.successAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showSuccessSnackBar('Semua notifikasi ditandai sudah dibaca');
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menandai semua sebagai dibaca'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showErrorSnackBar('Gagal menandai semua sebagai dibaca');
       }
     }
   }

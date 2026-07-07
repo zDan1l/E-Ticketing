@@ -128,13 +128,7 @@ class _LoginPageState extends State<LoginPage>
               ),
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            context.showErrorSnackBar(message);
           }
         }
       }

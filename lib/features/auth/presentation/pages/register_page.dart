@@ -68,25 +68,10 @@ class _RegisterPageState extends State<RegisterPage>
         setState(() => _isLoading = false);
 
         if (result['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Registrasi berhasil! Silakan login.',
-                style: const TextStyle(color: AppColors.onBackground),
-              ),
-              backgroundColor: AppColors.successAccent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.showSuccessSnackBar('Registrasi berhasil! Silakan login.');
           Navigator.of(context).pop();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Registrasi gagal'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.showErrorSnackBar(result['message'] ?? 'Registrasi gagal');
         }
       }
     }

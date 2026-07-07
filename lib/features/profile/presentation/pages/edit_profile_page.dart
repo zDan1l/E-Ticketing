@@ -42,25 +42,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (mounted) {
         setState(() => _isLoading = false);
         if (result['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'Profil berhasil diperbarui',
-                style: TextStyle(color: AppColors.onBackground),
-              ),
-              backgroundColor: AppColors.successAccent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.showSuccessSnackBar('Profil berhasil diperbarui');
           Navigator.of(context).pop(true);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Gagal memperbarui profil'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.showErrorSnackBar(result['message'] ?? 'Gagal memperbarui profil');
         }
       }
     }
@@ -84,21 +69,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         if (mounted) {
           setState(() => _isLoading = false);
           if (result['success'] == true) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Foto profil berhasil diubah'),
-                backgroundColor: AppColors.successAccent,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            context.showSuccessSnackBar('Foto profil berhasil diubah');
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(result['message'] ?? 'Gagal mengunggah foto'),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            context.showErrorSnackBar(result['message'] ?? 'Gagal mengunggah foto');
           }
         }
       }
@@ -114,21 +87,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Foto profil berhasil dihapus'),
-            backgroundColor: AppColors.successAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showSuccessSnackBar('Foto profil berhasil dihapus');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Gagal menghapus foto'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showErrorSnackBar(result['message'] ?? 'Gagal menghapus foto');
       }
     }
   }

@@ -44,13 +44,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         if (result['success'] == true) {
           _showSuccessDialog();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Gagal mengubah password'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.showErrorSnackBar(result['message'] ?? 'Gagal mengubah password');
         }
       }
     }

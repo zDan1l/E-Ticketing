@@ -79,13 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Role switching disabled in API mode'),
-                      backgroundColor: AppColors.onSurface,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  context.showInfoSnackBar('Role switching disabled in API mode', duration: const Duration(seconds: 2));
                 },
               ),
             );
