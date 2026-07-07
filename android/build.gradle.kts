@@ -22,13 +22,25 @@ subprojects {
     afterEvaluate {
         if (project.hasProperty("android")) {
             val android = project.extensions.getByName("android")
-            // Use property access or method call to set compileSdk to 36
-            try {
-                (android as? com.android.build.gradle.BaseExtension)?.compileSdkVersion(36)
-            } catch (e: Exception) {
-                // Fallback for newer AGP versions if the above cast fails
-                project.extensions.configure<com.android.build.api.dsl.CommonExtension<*, *, *, *, *, *>>("android") {
-                    compileSdk = 36
+            // Use the older DSL approach since android.newDsl=false
+            if (android is com.android.build.gradle.BaseExtension) {
+                android.compileSdkVersion(36)
+            } else {
+                // For newer plugin versions that use different interfaces
+                try {
+                    val method = android.javaClass.methods.find {
+                        it.name == "setCompileSdk" || it.name == "compileSdkVersion"
+                    }
+                    if (method != null) {
+                        when {
+                            method.name == "setCompileSdk" && method.parameterCount == 1 ->
+                                method.invoke(android, 36)
+                            method.name == "compileSdkVersion" && method.parameterCount == 1 ->
+                                method.invoke(android, 36)
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("Warning: Could not set compileSdk for project ${project.name}: ${e.message}")
                 }
             }
         }

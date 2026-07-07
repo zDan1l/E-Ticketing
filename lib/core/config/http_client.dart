@@ -47,6 +47,7 @@ class HttpClient {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
     };
 
     if (requireAuth && _accessToken != null) {

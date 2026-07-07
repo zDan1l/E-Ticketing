@@ -1,18 +1,42 @@
 import 'dart:io' show Platform;
+import 'package:http/http.dart' as http;
 
 /// Application Configuration
 /// Base URL and other configuration settings for the app
 class AppConfig {
-  // Base API URL - Read from environment or use default
-  // For development, defaults to localhost
-  // In production, this should be set via environment variable
-  //
-  // For Android Emulator: Use 10.0.2.2 instead of localhost
-  // For iOS Simulator: localhost works fine
-  // For Physical Device: Use your computer's IP address
-  // For Desktop (Windows/Mac/Linux): localhost works fine
-  // For Web: localhost works fine
-  static String get baseUrl {
+  static String _activeBaseUrl = '';
+  static String _activeApiBaseUrl = '';
+
+  /// Check if ngrok is online and reachable, otherwise fall back to localhost defaults.
+  static Future<void> findActiveBaseUrl() async {
+    const ngrokUrl = 'https://celena-draughtiest-marylee.ngrok-free.dev';
+    
+    try {
+      // Perform a quick connectivity test to ngrok endpoint (e.g. login endpoint)
+      final uri = Uri.parse('$ngrokUrl/api/auth/login');
+      final response = await http.get(
+        uri,
+        headers: {'ngrok-skip-browser-warning': 'true'},
+      ).timeout(const Duration(milliseconds: 2000));
+
+      // Any HTTP response below 500 status code means the server is reachable and active.
+      if (response.statusCode >= 200 && response.statusCode < 500) {
+        _activeBaseUrl = ngrokUrl;
+        _activeApiBaseUrl = '$ngrokUrl/api';
+        print('🔌 Connected to ngrok endpoint: $ngrokUrl');
+        return;
+      }
+    } catch (e) {
+      print('🔌 ngrok endpoint check failed: $e');
+    }
+
+    // Fallback to defaults
+    _activeBaseUrl = _getDefaultBaseUrl();
+    _activeApiBaseUrl = _getDefaultApiBaseUrl();
+    print('🔌 Fallback to localhost endpoint: $_activeBaseUrl');
+  }
+
+  static String _getDefaultBaseUrl() {
     // Check if environment variable is set
     const envBaseUrl = String.fromEnvironment('API_BASE_URL');
     if (envBaseUrl.isNotEmpty) {
@@ -25,31 +49,21 @@ class AppConfig {
       return url;
     }
 
-    // Otherwise, use platform-specific default
-    // Safely check platform to avoid "unsupported operation" errors
     try {
       if (Platform.isAndroid) {
         // Android Emulator uses 10.0.2.2 for localhost
-        // For physical Android device, user should set API_BASE_URL via --dart-define
         return 'http://10.0.2.2:3000';
       } else if (Platform.isIOS) {
         // iOS Simulator can use localhost
-        // For physical iOS device, user should set API_BASE_URL via --dart-define
         return 'http://localhost:3000';
       }
-      // For Desktop (Windows/Mac/Linux) - localhost works fine
-      // For Web in browser - need to use actual IP if running on different device
       return 'http://localhost:3000';
     } catch (e) {
-      // Fallback for platforms that don't support Platform (like web)
-      // Web on same machine: localhost works
-      // Web on different device: user must set API_BASE_URL via --dart-define
       return 'http://localhost:3000';
     }
   }
 
-  // API Base URL (for compatibility)
-  static String get apiBaseUrl {
+  static String _getDefaultApiBaseUrl() {
     // Check if environment variable is set
     const envBaseUrl = String.fromEnvironment('API_BASE_URL');
     if (envBaseUrl.isNotEmpty) {
@@ -60,27 +74,32 @@ class AppConfig {
       return url;
     }
 
-    // Otherwise, use platform-specific default
-    // Safely check platform to avoid "unsupported operation" errors
     try {
       if (Platform.isAndroid) {
-        // Android Emulator uses 10.0.2.2 for localhost
-        // For physical Android device, user should set API_BASE_URL via --dart-define
         return 'http://10.0.2.2:3000/api';
       } else if (Platform.isIOS) {
-        // iOS Simulator can use localhost
-        // For physical iOS device, user should set API_BASE_URL via --dart-define
         return 'http://localhost:3000/api';
       }
-      // For Desktop (Windows/Mac/Linux) - localhost works fine
-      // For Web in browser - need to use actual IP if running on different device
       return 'http://localhost:3000/api';
     } catch (e) {
-      // Fallback for platforms that don't support Platform (like web)
-      // Web on same machine: localhost works
-      // Web on different device: user must set API_BASE_URL via --dart-define
       return 'http://localhost:3000/api';
     }
+  }
+
+  // Base API URL - Read from environment or use default
+  static String get baseUrl {
+    if (_activeBaseUrl.isEmpty) {
+      _activeBaseUrl = _getDefaultBaseUrl();
+    }
+    return _activeBaseUrl;
+  }
+
+  // API Base URL (for compatibility)
+  static String get apiBaseUrl {
+    if (_activeApiBaseUrl.isEmpty) {
+      _activeApiBaseUrl = _getDefaultApiBaseUrl();
+    }
+    return _activeApiBaseUrl;
   }
 
   // API Endpoints
@@ -90,40 +109,8 @@ class AppConfig {
   static const String notificationsPath = '/notifications';
   static const String commentsPath = '/comments';
 
-  // Main API base URL with /api prefix
-  static String get _apiBaseUrl {
-    // Check if environment variable is set
-    const envBaseUrl = String.fromEnvironment('API_BASE_URL');
-    if (envBaseUrl.isNotEmpty) {
-      String url = envBaseUrl;
-      if (!url.endsWith('/api') && !url.endsWith('/api/')) {
-        url = url.endsWith('/') ? '${url}api' : '$url/api';
-      }
-      return url;
-    }
-
-    // Otherwise, use platform-specific default
-    // Safely check platform to avoid "unsupported operation" errors
-    try {
-      if (Platform.isAndroid) {
-        // Android Emulator uses 10.0.2.2 for localhost
-        // For physical Android device, user should set API_BASE_URL via --dart-define
-        return 'http://10.0.2.2:3000/api';
-      } else if (Platform.isIOS) {
-        // iOS Simulator can use localhost
-        // For physical iOS device, user should set API_BASE_URL via --dart-define
-        return 'http://localhost:3000/api';
-      }
-      // For Desktop (Windows/Mac/Linux) - localhost works fine
-      // For Web in browser - need to use actual IP if running on different device
-      return 'http://localhost:3000/api';
-    } catch (e) {
-      // Fallback for platforms that don't support Platform (like web)
-      // Web on same machine: localhost works
-      // Web on different device: user must set API_BASE_URL via --dart-define
-      return 'http://localhost:3000/api';
-    }
-  }
+  // Main API base URL with /api prefix (for compatibility)
+  static String get _apiBaseUrl => apiBaseUrl;
 
   // Full endpoint URLs
   static String get authUrl => '$apiBaseUrl$authPath';

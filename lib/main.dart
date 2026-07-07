@@ -35,6 +35,9 @@ final themeNotifier = ThemeNotifier();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Find active base URL (ngrok vs localhost fallback)
+  await AppConfig.findActiveBaseUrl();
+
   // Initialize auth service (loads saved session if available)
   await AuthService().initialize();
 
