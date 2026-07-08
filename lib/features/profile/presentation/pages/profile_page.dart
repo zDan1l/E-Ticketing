@@ -103,7 +103,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final currentUser = authProvider.currentUser;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       body: CustomScrollView(
         slivers: [
           // Header

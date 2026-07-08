@@ -64,7 +64,6 @@ class MainNavigationState extends State<MainNavigation> {
     final unreadCount = context.watch<NotificationProvider>().unreadCount;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       extendBody: true,
       body: IndexedStack(
         index: _currentIndex == 2 ? 0 : _currentIndex,

@@ -171,7 +171,6 @@ class _ConnectionTestPageState extends State<ConnectionTestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         title: Text(
           'API Connection Test',

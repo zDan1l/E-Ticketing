@@ -201,7 +201,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                 'Tidak dapat membuka "${attachment.fileName}" secara langsung.\n\n'
                 'Salin tautan di bawah ini untuk mengunduh melalui browser:',
                 style: AppTheme().bodyMedium.copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               actions: [
@@ -325,7 +325,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           'Apakah Anda yakin ingin menghapus tiket ini? '
           'Tindakan ini tidak dapat dibatalkan.',
           style: AppTheme().bodyMedium.copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         actions: [
@@ -368,7 +368,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           'Apakah Anda yakin ingin menghapus lampiran '
           '"${attachment.fileName}"?',
           style: AppTheme().bodyMedium.copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         actions: [
@@ -488,9 +488,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     final timeline = _timeline;
     final comments = _comments;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+    final onSurfaceVariant = theme.colorScheme.onSurfaceVariant;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surfaceContainerLowest,
         leading: IconButton(
@@ -577,25 +579,25 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                               Icon(
                                 _categoryIcon(_ticket.category),
                                 size: 16,
-                                color: AppColors.onSurfaceVariant,
+                                color: onSurfaceVariant,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 _categoryLabel(_ticket.category),
                                 style: AppTheme().bodyMedium.copyWith(
-                                  color: AppColors.onSurfaceVariant,
+                                  color: onSurfaceVariant,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              const Icon(Icons.access_time_rounded,
+                               Icon(Icons.access_time_rounded,
                                   size: 16,
-                                  color: AppColors.onSurfaceVariant),
+                                  color: onSurfaceVariant),
                               const SizedBox(width: 4),
                               Text(
                                 _formatDate(_ticket.createdAt),
                                 style: AppTheme().bodyMedium.copyWith(
-                                  color: AppColors.onSurfaceVariant,
+                                  color: onSurfaceVariant,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -885,7 +887,7 @@ class _PersonInfo extends StatelessWidget {
         Text(
           label,
           style: AppTheme().labelSmall.copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -908,7 +910,7 @@ class _PersonInfo extends StatelessWidget {
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: avatar != null ? Colors.white : AppColors.onSurfaceVariant,
+                    color: avatar != null ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -918,7 +920,7 @@ class _PersonInfo extends StatelessWidget {
               child: Text(
                 name,
                 style: AppTheme().bodyMedium.copyWith(
-                  color: isDark ? Colors.white : AppColors.onSurface,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -1008,7 +1010,7 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
         margin: const EdgeInsets.only(bottom: 12),
         height: 200,
         decoration: BoxDecoration(
-          color: AppColors.canvas,
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(
@@ -1032,7 +1034,7 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.canvas,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.2),
@@ -1058,8 +1060,8 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
                   _imageBytes!,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.broken_image, size: 48, color: AppColors.onSurfaceVariant),
+                    return Center(
+                      child: Icon(Icons.broken_image, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     );
                   },
                 ),
@@ -1091,7 +1093,7 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
                     Text(
                       widget.attachment.fileName,
                       style: AppTheme().bodyMedium.copyWith(
-                        color: AppColors.onSurface,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1099,7 +1101,7 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
                     Text(
                       widget.attachment.fileSizeDisplay,
                       style: AppTheme().labelSmall.copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -1147,7 +1149,7 @@ class _FileAttachmentCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.canvas,
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -1173,7 +1175,7 @@ class _FileAttachmentCard extends StatelessWidget {
                   Text(
                     attachment.fileName,
                     style: AppTheme().bodyMedium.copyWith(
-                      color: AppColors.onSurface,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1181,7 +1183,7 @@ class _FileAttachmentCard extends StatelessWidget {
                   Text(
                     attachment.fileSizeDisplay,
                     style: AppTheme().labelSmall.copyWith(
-                      color: AppColors.onSurfaceVariant,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],

@@ -97,7 +97,6 @@ class _NotificationPageState extends State<NotificationPage> {
     final errorMessage = notifProvider.errorMessage;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         titleSpacing: 20,
         title: Text(

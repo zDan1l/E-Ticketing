@@ -143,7 +143,7 @@ class _TicketListPageState extends State<TicketListPage> {
               Text(
                 'Kategori',
                 style: AppTheme().labelCaps.copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 12),
@@ -168,7 +168,7 @@ class _TicketListPageState extends State<TicketListPage> {
               Text(
                 'Priority',
                 style: AppTheme().labelCaps.copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 12),
@@ -227,7 +227,6 @@ class _TicketListPageState extends State<TicketListPage> {
     final isAdmin = authProvider.currentUserRole == UserRole.admin;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         titleSpacing: 20,
         title: Text(
@@ -323,17 +322,17 @@ class _TicketListPageState extends State<TicketListPage> {
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.support_agent_rounded,
                                 size: 16,
-                                color: AppColors.onSurfaceVariant,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 'Filter Helpdesk Staff:',
                                 style: AppTheme().bodyMedium.copyWith(
                                   fontSize: 12,
-                                  color: AppColors.onSurfaceVariant,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -391,7 +390,7 @@ class _TicketListPageState extends State<TicketListPage> {
                                 'Filter Aktif:',
                                 style: AppTheme().bodyMedium.copyWith(
                                   fontSize: 12,
-                                  color: AppColors.onSurfaceVariant,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -454,17 +453,17 @@ class _TicketListPageState extends State<TicketListPage> {
                       Text(
                         '${tickets.length} tiket ditemukan',
                         style: AppTheme().bodyMedium.copyWith(
-                          color: AppColors.onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const Spacer(),
                       Icon(Icons.sort_rounded,
-                          size: 18, color: AppColors.onSurfaceVariant),
+                          size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         'Terbaru',
                         style: AppTheme().bodyMedium.copyWith(
-                          color: AppColors.onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -563,7 +562,7 @@ class _TicketListPageState extends State<TicketListPage> {
             fontFamily: 'Plus Jakarta Sans',
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+            color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -772,10 +771,10 @@ class _TicketCard extends StatelessWidget {
               ],
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.schedule_rounded,
                     size: 14,
-                    color: AppColors.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 4),
                   Text(

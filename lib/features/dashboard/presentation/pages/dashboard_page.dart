@@ -120,9 +120,13 @@ class _DashboardPageState extends State<DashboardPage>
     final currentUser = authProvider.currentUser;
     final userRole = currentUser?.role ?? UserRole.user;
 
+    final theme = Theme.of(context);
+    final onSurfaceVariant = theme.colorScheme.onSurfaceVariant;
+    final outline = theme.colorScheme.outline;
+    final buttonBg = theme.cardTheme.color ?? AppColors.surfaceContainerLowest;
+
     if (_isLoading || ticketProvider.isLoading) {
       return Scaffold(
-        backgroundColor: AppColors.canvas,
         body: SafeArea(
           bottom: false,
           child: _buildLoadingSkeleton(),
@@ -144,7 +148,6 @@ class _DashboardPageState extends State<DashboardPage>
     }).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -172,17 +175,17 @@ class _DashboardPageState extends State<DashboardPage>
                             _getTimeBasedGreeting(),
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.onSurfaceVariant,
+                                  color: onSurfaceVariant,
                                 ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
+                          Text(
                             'Dashboard Layanan',
                             style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.outline,
+                              color: outline,
                             ),
                           ),
                         ],
@@ -191,8 +194,8 @@ class _DashboardPageState extends State<DashboardPage>
                         children: [
                           ClayIconButton(
                             icon: Icons.refresh_rounded,
-                            backgroundColor: AppColors.surfaceContainerLowest,
-                            iconColor: AppColors.onSurfaceVariant,
+                            backgroundColor: buttonBg,
+                            iconColor: onSurfaceVariant,
                             size: 40,
                             onPressed: _loadData,
                             tooltip: 'Refresh',
@@ -200,8 +203,8 @@ class _DashboardPageState extends State<DashboardPage>
                           const SizedBox(width: 8),
                           ClayIconButton(
                             icon: Icons.settings_rounded,
-                            backgroundColor: AppColors.surfaceContainerLowest,
-                            iconColor: AppColors.onSurfaceVariant,
+                            backgroundColor: buttonBg,
+                            iconColor: onSurfaceVariant,
                             size: 40,
                             onPressed: () {
                               context.findAncestorStateOfType<MainNavigationState>()?.setIndex(4);
@@ -445,7 +448,7 @@ class _DashboardPageState extends State<DashboardPage>
                                       child: Icon(
                                         Icons.filter_list_off_rounded,
                                         size: 40,
-                                        color: AppColors.outline.withOpacity(0.6),
+                                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.6),
                                       ),
                                     ),
                                     const SizedBox(height: 16),
@@ -459,7 +462,7 @@ class _DashboardPageState extends State<DashboardPage>
                                     Text(
                                       'Tidak ada tiket terdaftar dengan status "${_selectedFilter.toUpperCase()}" saat ini.',
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                            color: AppColors.onSurfaceVariant,
+                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                                           ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -776,13 +779,13 @@ class _DashboardPageState extends State<DashboardPage>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Penyelesaian Tiket Anda',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     Text(
@@ -860,13 +863,13 @@ class _DashboardPageState extends State<DashboardPage>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Pencapaian SLA Resolusi',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     Text(
@@ -962,13 +965,13 @@ class _DashboardPageState extends State<DashboardPage>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Penyelesaian Tiket Global',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     Text(

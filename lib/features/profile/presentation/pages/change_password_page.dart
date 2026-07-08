@@ -111,7 +111,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         backgroundColor: AppColors.surfaceContainerLowest,
         leading: ClayIconButton(

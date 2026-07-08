@@ -105,7 +105,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         titleSpacing: 20,
         title: Text(

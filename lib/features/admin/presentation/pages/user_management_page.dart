@@ -520,7 +520,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
     final currentUser = _authService.currentUser;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.background,

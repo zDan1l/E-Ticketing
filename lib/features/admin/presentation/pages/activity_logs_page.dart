@@ -65,7 +65,6 @@ class _ActivityLogsPageState extends State<ActivityLogsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         titleSpacing: 20,
         title: Text(

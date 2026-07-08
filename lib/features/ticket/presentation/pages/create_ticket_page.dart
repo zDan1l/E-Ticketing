@@ -172,7 +172,6 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         titleSpacing: 20,
         leading: IconButton(

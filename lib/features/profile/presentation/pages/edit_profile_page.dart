@@ -104,7 +104,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final currentUser = authProvider.currentUser;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
       appBar: AppBar(
         backgroundColor: AppColors.surfaceContainerLowest,
         leading: ClayIconButton(
