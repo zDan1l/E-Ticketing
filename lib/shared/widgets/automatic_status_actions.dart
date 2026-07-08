@@ -15,45 +15,6 @@ class AutomaticStatusActions extends StatelessWidget {
     required this.onActionComplete,
   });
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'open':
-        return AppColors.primary;
-      case 'in_progress':
-        return AppColors.warningAccent;
-      case 'closed':
-        return AppColors.successAccent;
-      default:
-        return AppColors.primary;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status) {
-      case 'open':
-        return Icons.inbox_rounded;
-      case 'in_progress':
-        return Icons.autorenew_rounded;
-      case 'closed':
-        return Icons.check_circle_rounded;
-      default:
-        return Icons.help_outline_rounded;
-    }
-  }
-
-  String _getStatusButtonLabel(String status) {
-    switch (status) {
-      case 'open':
-        return 'Menunggu Assign';
-      case 'in_progress':
-        return 'Sedang Diproses';
-      case 'closed':
-        return 'Selesai';
-      default:
-        return status;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
@@ -61,13 +22,8 @@ class AutomaticStatusActions extends StatelessWidget {
     final userRole = currentUser?.role ?? UserRole.user;
     final isAssignedToMe = ticket.assigneeId == currentUser?.id;
 
-    // Show actions only for helpdesk assigned to this ticket
-    if (userRole != UserRole.helpdesk || !isAssignedToMe) {
-      return const SizedBox.shrink();
-    }
-
-    // Don't show any buttons if ticket is already closed
-    if (ticket.isClosed) {
+    // Show actions only for helpdesk assigned to this ticket and when ticket is in progress
+    if (userRole != UserRole.helpdesk || !isAssignedToMe || !ticket.isInProgress) {
       return const SizedBox.shrink();
     }
 
@@ -85,7 +41,7 @@ class AutomaticStatusActions extends StatelessWidget {
                   color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.bolt_rounded,
                   color: AppColors.onPrimaryContainer,
                   size: 16,
@@ -105,47 +61,7 @@ class AutomaticStatusActions extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              // Current status indicator
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _getStatusColor(ticket.status).withValues(alpha: 0.5),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getStatusIcon(ticket.status),
-                      color: _getStatusColor(ticket.status),
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _getStatusButtonLabel(ticket.status).toUpperCase(),
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: _getStatusColor(ticket.status),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Action button based on current status
-              Expanded(
-                child: _buildActionButton(context),
-              ),
-            ],
-          ),
+          _buildActionButton(context),
         ],
       ),
     );
@@ -179,8 +95,8 @@ class AutomaticStatusActions extends StatelessWidget {
           ),
           ClayButton(
             text: 'Selesaikan',
-            backgroundColor: AppColors.successAccent,
-            textColor: AppColors.onBackground,
+            backgroundColor: const Color(0xFF2E7D32),
+            textColor: Colors.white,
             onPressed: () {
               Navigator.pop(context);
               onActionComplete();
@@ -207,16 +123,22 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSuccess = color == AppColors.successAccent;
+    final bgColor = isSuccess ? const Color(0xFF2E7D32) : color.withValues(alpha: 0.1);
+    final borderColor = isSuccess ? const Color(0xFF1B5E20) : color.withValues(alpha: 0.5);
+    final textColor = isSuccess ? Colors.white : color;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: bgColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: color.withValues(alpha: 0.5),
+            color: borderColor,
             width: 1,
           ),
         ),
@@ -226,7 +148,7 @@ class _ActionButton extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: color,
+              color: textColor,
               size: 16,
             ),
             const SizedBox(width: 6),
@@ -235,8 +157,8 @@ class _ActionButton extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: color,
+                fontWeight: FontWeight.w800,
+                color: textColor,
               ),
             ),
           ],

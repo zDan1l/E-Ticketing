@@ -1,6 +1,7 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../models/ticket_model.dart';
@@ -129,7 +130,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     }
 
     try {
-      final response = await http.get(Uri.parse(imageUrl));
+      final response = await http.get(
+        Uri.parse(imageUrl),
+        headers: {'ngrok-skip-browser-warning': 'true'},
+      );
       if (response.statusCode == 200) {
         final bytes = response.bodyBytes;
         _imageBytesCache[imageUrl] = bytes;
@@ -141,36 +145,85 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     return null;
   }
 
-  void _showImageDialog(Uint8List imageBytes, String fileName) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Stack(
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Image.memory(
-                    imageBytes,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ],
-            ),
-            Positioned(
-              top: 40,
-              right: 20,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 32),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ],
+  void _showImageDialog(Uint8List imageBytes, String fileName, String fileUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullScreenImageViewer(
+          imageBytes: imageBytes,
+          fileName: fileName,
+          fileUrl: fileUrl,
         ),
       ),
     );
+  }
+
+  Future<void> _openAttachment(AttachmentModel attachment) async {
+    final fileUrl = AttachmentService().getFileUrl(attachment.filePath);
+    final ext = attachment.fileExtension;
+
+    if (attachment.isImage) {
+      final bytes = await _loadImageBytes(fileUrl);
+      if (bytes != null && mounted) {
+        _showImageDialog(bytes, attachment.fileName, fileUrl);
+      } else {
+        if (mounted) {
+          context.showErrorSnackBar('Gagal memuat pratinjau gambar');
+        }
+      }
+    } else if (ext == 'txt' || ext == 'log' || ext == 'json' || ext == 'csv' || ext == 'xml' || ext == 'html') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FullScreenTextViewer(
+            fileUrl: fileUrl,
+            fileName: attachment.fileName,
+          ),
+        ),
+      );
+    } else {
+      final uri = Uri.parse(fileUrl);
+      try {
+        final launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          throw 'Could not launch $fileUrl';
+        }
+      } catch (e) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: Text('Buka Lampiran', style: AppTheme().headlineSmall),
+              content: Text(
+                'Tidak dapat membuka "${attachment.fileName}" secara langsung.\n\n'
+                'Salin tautan di bawah ini untuk mengunduh melalui browser:',
+                style: AppTheme().bodyMedium.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              actions: [
+                ClayButton(
+                  text: 'Batal',
+                  isGhost: true,
+                  onPressed: () => Navigator.pop(dialogContext),
+                ),
+                ClayButton(
+                  text: 'Salin Tautan',
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: fileUrl));
+                    Navigator.pop(dialogContext);
+                    context.showSuccessSnackBar('Tautan berhasil disalin ke clipboard');
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -645,11 +698,13 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                   onImageTap: _showImageDialog,
                                   onDelete: () => _showDeleteAttachmentDialog(attachment),
                                   canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
+                                  onFallbackTap: () => _openAttachment(attachment),
                                 ),
                             ),
                             ..._attachments.where((a) => !a.isImage).map((attachment) =>
                                 _FileAttachmentCard(
                                   attachment: attachment,
+                                  onTap: () => _openAttachment(attachment),
                                   onDelete: () => _showDeleteAttachmentDialog(attachment),
                                   canDelete: _authService.currentUser?.hasPermission(UserPermission.canDeleteTicket) ?? false,
                                 ),
@@ -889,9 +944,10 @@ class _ImageAttachmentCard extends StatefulWidget {
   final AttachmentModel attachment;
   final Map<String, Uint8List> imageBytesCache;
   final Future<Uint8List?> Function(String imageUrl) onLoadImage;
-  final void Function(Uint8List imageBytes, String fileName) onImageTap;
+  final void Function(Uint8List imageBytes, String fileName, String fileUrl) onImageTap;
   final VoidCallback onDelete;
   final bool canDelete;
+  final VoidCallback onFallbackTap;
 
   const _ImageAttachmentCard({
     required this.attachment,
@@ -900,6 +956,7 @@ class _ImageAttachmentCard extends StatefulWidget {
     required this.onImageTap,
     required this.onDelete,
     required this.canDelete,
+    required this.onFallbackTap,
   });
 
   @override
@@ -963,10 +1020,13 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
     if (_hasError || _imageBytes == null) {
       return _FileAttachmentCard(
         attachment: widget.attachment,
+        onTap: widget.onFallbackTap,
         onDelete: widget.onDelete,
         canDelete: widget.canDelete,
       );
     }
+
+    final imageUrl = AttachmentService().getFileUrl(widget.attachment.filePath);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -984,7 +1044,7 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
         children: [
           // Image preview
           GestureDetector(
-            onTap: () => widget.onImageTap(_imageBytes!, widget.attachment.fileName),
+            onTap: () => widget.onImageTap(_imageBytes!, widget.attachment.fileName, imageUrl),
             child: Container(
               width: double.infinity,
               height: 200,
@@ -1068,72 +1128,77 @@ class _ImageAttachmentCardState extends State<_ImageAttachmentCard> {
 // ─────────────────────────────────────────────────────────────────────────────
 class _FileAttachmentCard extends StatelessWidget {
   final AttachmentModel attachment;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
   final bool canDelete;
 
   const _FileAttachmentCard({
     required this.attachment,
+    required this.onTap,
     required this.onDelete,
     required this.canDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.canvas,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.primaryFixed,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              _getFileIcon(attachment.fileName),
-              color: AppColors.primary,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  attachment.fileName,
-                  style: AppTheme().bodyMedium.copyWith(
-                    color: AppColors.onSurface,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  attachment.fileSizeDisplay,
-                  style: AppTheme().labelSmall.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (canDelete)
-            IconButton(
-              onPressed: onDelete,
-              icon: const Icon(
-                Icons.delete_rounded,
-                size: 18,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.canvas,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primaryFixed,
+                borderRadius: BorderRadius.circular(10),
               ),
-              color: AppColors.error,
-              tooltip: 'Hapus Lampiran',
+              child: Icon(
+                _getFileIcon(attachment.fileName),
+                color: AppColors.primary,
+                size: 20,
+              ),
             ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    attachment.fileName,
+                    style: AppTheme().bodyMedium.copyWith(
+                      color: AppColors.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    attachment.fileSizeDisplay,
+                    style: AppTheme().labelSmall.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (canDelete)
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(
+                  Icons.delete_rounded,
+                  size: 18,
+                ),
+                color: AppColors.error,
+                tooltip: 'Hapus Lampiran',
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1157,5 +1222,181 @@ class _FileAttachmentCard extends StatelessWidget {
       default:
         return Icons.attach_file_rounded;
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FullScreenImageViewer - Halaman peninjau gambar fullscreen interaktif
+// ─────────────────────────────────────────────────────────────────────────────
+class FullScreenImageViewer extends StatelessWidget {
+  final Uint8List imageBytes;
+  final String fileName;
+  final String fileUrl;
+
+  const FullScreenImageViewer({
+    super.key,
+    required this.imageBytes,
+    required this.fileName,
+    required this.fileUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          fileName,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontFamily: 'Plus Jakarta Sans',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy_rounded, color: Colors.white),
+            tooltip: 'Salin Tautan',
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: fileUrl));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tautan gambar berhasil disalin ke clipboard'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 0.5,
+          maxScale: 4.0,
+          child: Image.memory(
+            imageBytes,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FullScreenTextViewer - Halaman pembaca file teks fullscreen
+// ─────────────────────────────────────────────────────────────────────────────
+class FullScreenTextViewer extends StatefulWidget {
+  final String fileUrl;
+  final String fileName;
+
+  const FullScreenTextViewer({
+    super.key,
+    required this.fileUrl,
+    required this.fileName,
+  });
+
+  @override
+  State<FullScreenTextViewer> createState() => _FullScreenTextViewerState();
+}
+
+class _FullScreenTextViewerState extends State<FullScreenTextViewer> {
+  String _content = '';
+  bool _isLoading = true;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTextContent();
+  }
+
+  Future<void> _loadTextContent() async {
+    try {
+      final response = await http.get(
+        Uri.parse(widget.fileUrl),
+        headers: {'ngrok-skip-browser-warning': 'true'},
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _content = response.body;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _hasError = true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _hasError = true;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.background : Colors.white,
+      appBar: AppBar(
+        backgroundColor: isDark ? AppColors.surfaceContainerLowest : AppColors.surfaceContainerLowest,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          widget.fileName,
+          style: AppTheme().headlineSmall.copyWith(fontSize: 16),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy_rounded),
+            tooltip: 'Salin Tautan',
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: widget.fileUrl));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tautan file berhasil disalin ke clipboard'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _hasError
+              ? const Center(child: Text('Gagal memuat isi file'))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: SelectionArea(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        _content,
+                        style: const TextStyle(
+                          fontFamily: 'Courier',
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+    );
   }
 }

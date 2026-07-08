@@ -57,6 +57,9 @@ dependencies:
   # Local notifications
   flutter_local_notifications: ^17.2.3
 
+  # Open links/files in browser
+  url_launcher: ^6.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

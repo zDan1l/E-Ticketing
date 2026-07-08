@@ -8,6 +8,7 @@ import '../../../../models/role_model.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/ticket_provider.dart';
 import '../../../../services/user_api_service.dart';
+import '../../../../shared/widgets/main_navigation.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DashboardPage — Enhanced UI with Unsplash illustrations and loading states
@@ -203,7 +204,7 @@ class _DashboardPageState extends State<DashboardPage>
                             iconColor: AppColors.onSurfaceVariant,
                             size: 40,
                             onPressed: () {
-                              Navigator.of(context).pushNamed('/profile');
+                              context.findAncestorStateOfType<MainNavigationState>()?.setIndex(4);
                             },
                             tooltip: 'Pengaturan',
                           ),
@@ -524,51 +525,64 @@ class _DashboardPageState extends State<DashboardPage>
         children: [
           Row(
             children: [
-              UserAvatar(
-                avatar: user?.avatar,
-                name: user?.name,
-                size: 56,
-                fontSize: 20,
-                backgroundColor: Colors.white,
-                textColor: AppColors.primary,
-                border: Border.all(color: Colors.white.withOpacity(0.2), width: 3),
-              ),
-              const SizedBox(width: 16),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Halo, Selamat Datang!',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.8),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      user?.name ?? 'Pengguna',
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                child: GestureDetector(
+                  onTap: () {
+                    context.findAncestorStateOfType<MainNavigationState>()?.setIndex(4);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    children: [
+                      UserAvatar(
+                        avatar: user?.avatar,
+                        name: user?.name,
+                        size: 56,
                         fontSize: 20,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
+                        backgroundColor: Colors.white,
+                        textColor: AppColors.primary,
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 3),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Halo, Selamat Datang!',
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 13,
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              user?.name ?? 'Pengguna',
+                              style: const TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(width: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
+                  color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1),
                 ),
                 child: Text(
                   _getRoleLabel(role).toUpperCase(),
@@ -1148,7 +1162,13 @@ class _DashboardPageState extends State<DashboardPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return InkWell(
-      onTap: () => Navigator.of(context).pushNamed(route),
+      onTap: () {
+        if (route == '/profile') {
+          context.findAncestorStateOfType<MainNavigationState>()?.setIndex(4);
+        } else {
+          Navigator.of(context).pushNamed(route);
+        }
+      },
       borderRadius: BorderRadius.circular(20),
       child: StyledCard(
         padding: const EdgeInsets.all(16),
