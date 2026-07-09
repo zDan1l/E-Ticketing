@@ -565,9 +565,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
           : _errorMessage != null
               ? EmptyStates.serverError(onRetry: _loadUsers)
               : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Role filter chips
                     Container(
+                      width: double.infinity,
                       color: AppColors.background,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
