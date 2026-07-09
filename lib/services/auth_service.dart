@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/config/app_config.dart';
 import '../core/config/http_client.dart';
 import '../models/role_model.dart';
@@ -14,6 +15,7 @@ class AuthService {
   AuthService._internal();
 
   final HttpClient _httpClient = HttpClient();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   // Current user state
   UserModel? _currentUser;
@@ -41,11 +43,30 @@ class AuthService {
     await _loadSavedUser();
   }
 
-  /// Load saved user from SharedPreferences
+  /// Load saved user from local storage (secure storage for tokens, SharedPreferences for profile)
   Future<void> _loadSavedUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final accessToken = prefs.getString(AppConfig.keyAccessToken);
+      
+      // Read access token from secure storage
+      String? accessToken = await _secureStorage.read(key: AppConfig.keyAccessToken);
+      
+      // Migration: if token is still in SharedPreferences, move it to Secure Storage
+      if (accessToken == null) {
+        final legacyToken = prefs.getString(AppConfig.keyAccessToken);
+        if (legacyToken != null) {
+          accessToken = legacyToken;
+          await _secureStorage.write(key: AppConfig.keyAccessToken, value: legacyToken);
+          await prefs.remove(AppConfig.keyAccessToken);
+          
+          final legacyRefreshToken = prefs.getString(AppConfig.keyRefreshToken);
+          if (legacyRefreshToken != null) {
+            await _secureStorage.write(key: AppConfig.keyRefreshToken, value: legacyRefreshToken);
+            await prefs.remove(AppConfig.keyRefreshToken);
+          }
+        }
+      }
+
       final userId = prefs.getString(AppConfig.keyUserId);
       final userRole = prefs.getString(AppConfig.keyUserRole);
       final userName = prefs.getString(AppConfig.keyUserName);
@@ -68,7 +89,7 @@ class AuthService {
     }
   }
 
-  /// Save user session to SharedPreferences
+  /// Save user session (tokens to Secure Storage, profile to SharedPreferences)
   Future<void> _saveUserSession({
     required String accessToken,
     required String? refreshToken,
@@ -76,10 +97,13 @@ class AuthService {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConfig.keyAccessToken, accessToken);
+      
+      // Save tokens securely
+      await _secureStorage.write(key: AppConfig.keyAccessToken, value: accessToken);
       if (refreshToken != null) {
-        await prefs.setString(AppConfig.keyRefreshToken, refreshToken);
+        await _secureStorage.write(key: AppConfig.keyRefreshToken, value: refreshToken);
       }
+
       await prefs.setString(AppConfig.keyUserId, user.id);
       await prefs.setString(AppConfig.keyUserRole, user.role.value);
       await prefs.setString(AppConfig.keyUserName, user.name);
@@ -90,12 +114,15 @@ class AuthService {
     }
   }
 
-  /// Clear user session from SharedPreferences
+  /// Clear user session (both from Secure Storage and SharedPreferences)
   Future<void> _clearUserSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(AppConfig.keyAccessToken);
-      await prefs.remove(AppConfig.keyRefreshToken);
+      
+      // Delete tokens securely
+      await _secureStorage.delete(key: AppConfig.keyAccessToken);
+      await _secureStorage.delete(key: AppConfig.keyRefreshToken);
+
       await prefs.remove(AppConfig.keyUserId);
       await prefs.remove(AppConfig.keyUserRole);
       await prefs.remove(AppConfig.keyUserName);

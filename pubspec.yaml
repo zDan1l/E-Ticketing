@@ -42,6 +42,7 @@ dependencies:
 
   # Local storage for auth tokens
   shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.0.0
 
   # File picker for attachments
   file_picker: ^8.0.0+1
