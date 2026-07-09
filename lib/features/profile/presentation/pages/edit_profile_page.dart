@@ -17,6 +17,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   bool _isLoading = false;
+  String? _localImagePath;
+  bool _isUpdated = false;
 
   @override
   void initState() {
@@ -65,15 +67,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
 
       if (image != null) {
-        setState(() => _isLoading = true);
+        setState(() {
+          _localImagePath = image.path;
+          _isLoading = true;
+        });
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final result = await authProvider.uploadAvatar(image);
 
         if (mounted) {
-          setState(() => _isLoading = false);
+          setState(() {
+            _isLoading = false;
+            if (result['success'] == true) {
+              _isUpdated = true;
+              _localImagePath = null;
+            }
+          });
           if (result['success'] == true) {
             context.showSuccessSnackBar('Foto profil berhasil diubah');
           } else {
+            setState(() {
+              _localImagePath = null;
+            });
             context.showErrorSnackBar(result['message'] ?? 'Gagal mengunggah foto');
           }
         }
@@ -89,12 +103,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final result = await authProvider.deleteAvatar();
 
     if (mounted) {
-      setState(() => _isLoading = false);
-      if (result['success'] == true) {
-        context.showSuccessSnackBar('Foto profil berhasil dihapus');
-      } else {
-        context.showErrorSnackBar(result['message'] ?? 'Gagal menghapus foto');
-      }
+      setState(() {
+        _isLoading = false;
+        if (result['success'] == true) {
+          _localImagePath = null;
+          _isUpdated = true;
+          context.showSuccessSnackBar('Foto profil berhasil dihapus');
+        } else {
+          context.showErrorSnackBar(result['message'] ?? 'Gagal menghapus foto');
+        }
+      });
     }
   }
 
@@ -108,7 +126,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         backgroundColor: AppColors.surfaceContainerLowest,
         leading: ClayIconButton(
           icon: Icons.arrow_back_ios_new_rounded,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, _isUpdated),
         ),
         title: Text(
           'Edit Profil',
@@ -152,6 +170,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     children: [
                       UserAvatar(
                         avatar: currentUser?.avatar,
+                        localImagePath: _localImagePath,
                         name: currentUser?.name,
                         size: 90,
                         fontSize: 32,

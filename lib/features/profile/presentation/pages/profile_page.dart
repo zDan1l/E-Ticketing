@@ -30,6 +30,10 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadTicketStats() async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      // Sync profile info (including avatar) from backend to ensure it is always up to date
+      await authProvider.syncProfile();
+
       final stats = await _ticketService.getTicketStats(
         userRole: authProvider.currentUserRole,
       );

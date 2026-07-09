@@ -133,6 +133,21 @@ class AuthService {
     }
   }
 
+  /// Update current user details locally and in SharedPreferences
+  Future<void> updateLocalUser(UserModel user) async {
+    _currentUser = user;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(AppConfig.keyUserId, user.id);
+      await prefs.setString(AppConfig.keyUserRole, user.role.value);
+      await prefs.setString(AppConfig.keyUserName, user.name);
+      await prefs.setString(AppConfig.keyUserEmail, user.email);
+      await prefs.setString(AppConfig.keyUserAvatar, user.avatar);
+    } catch (e) {
+      print('Error updating local user: $e');
+    }
+  }
+
   /// Sign up with email and password
   Future<Map<String, dynamic>> signUp({
     required String email,

@@ -27,6 +27,12 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     await _authService.initialize();
+    
+    // Sync profile details (including avatar) from backend if logged in
+    if (isAuthenticated) {
+      await syncProfile();
+    }
+    
     _isLoading = false;
     notifyListeners();
   }
@@ -193,6 +199,28 @@ class AuthProvider with ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
       return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<void> syncProfile() async {
+    if (isAuthenticated) {
+      try {
+        final profile = await _authService.getUserProfile();
+        if (profile != null) {
+          final updatedUser = UserModel(
+            id: profile['id'].toString(),
+            name: profile['name'] as String? ?? currentUser!.name,
+            email: profile['email'] as String? ?? currentUser!.email,
+            avatar: profile['avatar'] as String? ?? currentUser!.avatar,
+            role: UserRole.fromString(profile['role'] as String? ?? currentUser!.role.value),
+            isActive: profile['isActive'] as bool? ?? currentUser!.isActive,
+          );
+          await _authService.updateLocalUser(updatedUser);
+          notifyListeners();
+        }
+      } catch (e) {
+        print('Error syncing profile from backend: $e');
+      }
     }
   }
 }

@@ -913,25 +913,11 @@ class _PersonInfo extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                gradient: avatar != null ? AppColors.primaryGradient : null,
-                color: avatar != null ? null : (isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.surfaceContainerHigh),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  avatar ?? '?',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: avatar != null ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
+            UserAvatar(
+              avatar: avatar,
+              name: name,
+              size: 28,
+              fontSize: 10,
             ),
             const SizedBox(width: 8),
             Flexible(

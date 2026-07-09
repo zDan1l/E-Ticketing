@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/config/app_config.dart';
 
 class UserAvatar extends StatelessWidget {
   final String? avatar;
+  final String? localImagePath;
   final String? name;
   final double size;
   final double fontSize;
@@ -15,6 +17,7 @@ class UserAvatar extends StatelessWidget {
   const UserAvatar({
     super.key,
     this.avatar,
+    this.localImagePath,
     this.name,
     this.size = 40,
     this.fontSize = 14,
@@ -65,6 +68,24 @@ class UserAvatar extends StatelessWidget {
       }
     }
 
+    final hasLocalImage = localImagePath != null && localImagePath!.isNotEmpty;
+
+    if (hasLocalImage) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: border,
+          boxShadow: boxShadow,
+          image: DecorationImage(
+            image: FileImage(File(localImagePath!)),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+
     final isUrl = avatar != null &&
         avatar!.isNotEmpty &&
         (avatar!.startsWith('http') ||
@@ -94,7 +115,10 @@ class UserAvatar extends StatelessWidget {
           border: border,
           boxShadow: boxShadow,
           image: DecorationImage(
-            image: NetworkImage(fullUrl),
+            image: NetworkImage(
+              fullUrl,
+              headers: const {'ngrok-skip-browser-warning': 'true'},
+            ),
             fit: BoxFit.cover,
             onError: (exception, stackTrace) {
               // Fallback to text avatar on error
@@ -105,6 +129,7 @@ class UserAvatar extends StatelessWidget {
         child: ClipOval(
           child: Image.network(
             fullUrl,
+            headers: const {'ngrok-skip-browser-warning': 'true'},
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return Container(
