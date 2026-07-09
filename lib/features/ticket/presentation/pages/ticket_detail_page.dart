@@ -11,6 +11,7 @@ import '../../../../services/ticket_service.dart';
 import '../../../../services/attachment_service.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/ticket_provider.dart';
+import '../../../../providers/notification_provider.dart';
 import '../../../../shared/widgets/assign_ticket_dialog.dart';
 import '../../../../shared/widgets/automatic_status_actions.dart';
 import '../../../../shared/components/components.dart';
@@ -118,6 +119,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         await _loadTimelineAndComments();
 
         context.showSuccessSnackBar('Komentar berhasil ditambahkan');
+        try {
+          Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+        } catch (_) {}
       } else {
         context.showErrorSnackBar('Gagal menambahkan komentar');
       }
@@ -273,6 +277,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         );
       });
 
+      try {
+        Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+      } catch (_) {}
+
       await _loadTimelineAndComments();
 
       if (mounted) {
@@ -297,9 +305,13 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           assigneeId: assignee.id.isEmpty ? null : assignee.id,
           assigneeName: assignee.id.isEmpty ? null : assignee.name,
           assigneeAvatar: assignee.id.isEmpty ? null : assignee.avatar,
+          status: assignee.id.isEmpty ? 'open' : 'in_progress',
           updatedAt: DateTime.now(),
         );
       });
+
+      // Reload timeline and comments to show the assignment entry in the list
+      _loadTimelineAndComments();
 
       if (mounted) {
         context.showSuccessSnackBar(
@@ -309,6 +321,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           duration: const Duration(seconds: 2),
         );
       }
+      try {
+        Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+      } catch (_) {}
     } else {
       if (mounted) {
         context.showErrorSnackBar('Gagal mengassign tiket', duration: const Duration(seconds: 2));
@@ -344,6 +359,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               final success =
                   await ticketProvider.deleteTicket(_ticket.id);
               if (success) {
+                try {
+                  Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+                } catch (_) {}
                 if (mounted) {
                   Navigator.of(context).pop(true);
                 }

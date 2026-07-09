@@ -6,6 +6,7 @@ import '../../../../models/ticket_model.dart';
 import '../../../../models/role_model.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/ticket_provider.dart';
+import '../../../../providers/notification_provider.dart';
 import '../../../../services/user_api_service.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../shared/widgets/main_navigation.dart';
@@ -471,32 +472,45 @@ class _TicketListPageState extends State<TicketListPage> {
                 ),
                 // Tickets list
                 Expanded(
-                  child: tickets.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-                          itemCount: tickets.length,
-                          itemBuilder: (context, index) {
-                            final ticket = tickets[index];
-                            return _TicketCard(
-                              ticket: ticket,
-                              onTap: () async {
-                                final result = await Navigator.of(context).pushNamed(
-                                  '/ticket-detail',
-                                  arguments: ticket,
-                                );
-                                if (result == true && mounted) {
-                                  context.showSuccessSnackBar('Tiket berhasil dihapus');
-                                  final mainNavState = context.findAncestorStateOfType<MainNavigationState>();
-                                  mainNavState?.setIndex(0);
-                                }
-                                // Refresh ticket list when returning from detail page
-                                // to show any status updates
-                                _loadTickets();
-                              },
-                            );
-                          },
-                        ),
+                  child: RefreshIndicator(
+                    onRefresh: _loadTickets,
+                    color: AppColors.primary,
+                    child: tickets.isEmpty
+                        ? SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height - 300,
+                              child: _buildEmptyState(),
+                            ),
+                          )
+                        : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                            itemCount: tickets.length,
+                            itemBuilder: (context, index) {
+                              final ticket = tickets[index];
+                              return _TicketCard(
+                                ticket: ticket,
+                                onTap: () async {
+                                  final result = await Navigator.of(context).pushNamed(
+                                    '/ticket-detail',
+                                    arguments: ticket,
+                                  );
+                                  if (result == true && mounted) {
+                                    context.showSuccessSnackBar('Tiket berhasil dihapus');
+                                    final mainNavState = context.findAncestorStateOfType<MainNavigationState>();
+                                    mainNavState?.setIndex(0);
+                                  }
+                                  // Refresh ticket list and notifications when returning from detail page
+                                  _loadTickets();
+                                  try {
+                                    Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+                                  } catch (_) {}
+                                },
+                              );
+                            },
+                          ),
+                  ),
                 ),
               ],
             ),
@@ -528,8 +542,14 @@ class _TicketListPageState extends State<TicketListPage> {
     }
 
     return EmptyStates.noTickets(
-      onCreate: () {
-        Navigator.of(context).pushNamed('/create-ticket');
+      onCreate: () async {
+        final result = await Navigator.of(context).pushNamed('/create-ticket');
+        if (result == true && mounted) {
+          _loadTickets();
+          try {
+            Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+          } catch (_) {}
+        }
       },
     );
   }

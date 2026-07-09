@@ -258,7 +258,7 @@ class TicketProvider with ChangeNotifier {
 
   void startPeriodicFetch() {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       loadTickets(silent: true);
       loadStats(silent: true);
     });

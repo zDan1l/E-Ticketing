@@ -121,55 +121,72 @@ class _NotificationPageState extends State<NotificationPage> {
             ),
         ],
       ),
-      body: isLoading
-          ? const FullPageLoading(message: 'Memuat notifikasi...')
-          : errorMessage != null
-              ? EmptyStates.serverError(
-                  onRetry: _loadNotifications,
-                )
-              : notifications.isEmpty
-                  ? EmptyStates.noNotifications()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                      itemCount: notifications.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final notif = notifications[index];
-                        return _NotifItem(
-                          notif: notif,
-                          icon: _notifIcon(notif.type),
-                          iconColor: _notifIconColor(notif.type),
-                          timeAgo: _timeAgo(notif.createdAt),
-                          onTap: () async {
-                            // Mark as read
-                            if (!notif.isRead) {
-                              await _markAsRead(notif.id);
-                            }
-                            // Navigate to ticket if applicable
-                            if (notif.ticketId != null && mounted) {
-                              // Fetch the ticket and navigate
-                              try {
-                                final ticket = await _ticketService.getTicketById(notif.ticketId!);
-                                if (ticket != null && mounted) {
-                                  final result = await Navigator.of(context).pushNamed(
-                                    '/ticket-detail',
-                                    arguments: ticket,
-                                  );
-                                  if (result == true && mounted) {
-                                    context.showSuccessSnackBar('Tiket berhasil dihapus');
-                                    final mainNavState = context.findAncestorStateOfType<MainNavigationState>();
-                                    mainNavState?.setIndex(0);
-                                  }
-                                  _loadNotifications();
-                                }
-                              } catch (e) {
-                                // Ignore navigation errors
-                              }
-                            }
-                          },
-                        );
-                      },
+      body: RefreshIndicator(
+        onRefresh: _loadNotifications,
+        color: AppColors.primary,
+        child: isLoading
+            ? const FullPageLoading(message: 'Memuat notifikasi...')
+            : errorMessage != null
+                ? SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height - 200,
+                      child: EmptyStates.serverError(
+                        onRetry: _loadNotifications,
+                      ),
                     ),
+                  )
+                : notifications.isEmpty
+                    ? SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height - 200,
+                          child: EmptyStates.noNotifications(),
+                        ),
+                      )
+                    : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                        itemCount: notifications.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final notif = notifications[index];
+                          return _NotifItem(
+                            notif: notif,
+                            icon: _notifIcon(notif.type),
+                            iconColor: _notifIconColor(notif.type),
+                            timeAgo: _timeAgo(notif.createdAt),
+                            onTap: () async {
+                              // Mark as read
+                              if (!notif.isRead) {
+                                await _markAsRead(notif.id);
+                              }
+                              // Navigate to ticket if applicable
+                              if (notif.ticketId != null && mounted) {
+                                // Fetch the ticket and navigate
+                                try {
+                                  final ticket = await _ticketService.getTicketById(notif.ticketId!);
+                                  if (ticket != null && mounted) {
+                                    final result = await Navigator.of(context).pushNamed(
+                                      '/ticket-detail',
+                                      arguments: ticket,
+                                    );
+                                    if (result == true && mounted) {
+                                      context.showSuccessSnackBar('Tiket berhasil dihapus');
+                                      final mainNavState = context.findAncestorStateOfType<MainNavigationState>();
+                                      mainNavState?.setIndex(0);
+                                    }
+                                    _loadNotifications();
+                                  }
+                                } catch (e) {
+                                  // Ignore navigation errors
+                                }
+                              }
+                            },
+                          );
+                        },
+                      ),
+      ),
     );
   }
 }

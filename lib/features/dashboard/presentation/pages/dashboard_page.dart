@@ -7,6 +7,7 @@ import '../../../../models/ticket_model.dart';
 import '../../../../models/role_model.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/ticket_provider.dart';
+import '../../../../providers/notification_provider.dart';
 import '../../../../services/user_api_service.dart';
 import '../../../../shared/widgets/main_navigation.dart';
 
@@ -425,8 +426,14 @@ class _DashboardPageState extends State<DashboardPage>
                 sliver: recentTickets.isEmpty
                     ? SliverToBoxAdapter(
                         child: EmptyStates.noTickets(
-                          onCreate: () {
-                            Navigator.of(context).pushNamed('/create-ticket');
+                          onCreate: () async {
+                            final result = await Navigator.of(context).pushNamed('/create-ticket');
+                            if (result == true && mounted) {
+                              _loadData();
+                              try {
+                                Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+                              } catch (_) {}
+                            }
                           },
                         ),
                       )
@@ -630,8 +637,14 @@ class _DashboardPageState extends State<DashboardPage>
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushNamed('/create-ticket');
+            onPressed: () async {
+              final result = await Navigator.of(context).pushNamed('/create-ticket');
+              if (result == true && mounted) {
+                _loadData();
+                try {
+                  Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+                } catch (_) {}
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,

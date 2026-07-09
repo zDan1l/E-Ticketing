@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../shared/components/components.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../providers/ticket_provider.dart';
+import '../../../../providers/notification_provider.dart';
 import '../../../../services/attachment_service.dart';
 
 class CreateTicketPage extends StatefulWidget {
@@ -77,6 +78,10 @@ class _CreateTicketPageState extends State<CreateTicketPage> {
           context.showSuccessSnackBar(
             'Tiket berhasil dibuat${_attachedFiles.isNotEmpty ? " dengan ${_attachedFiles.length} lampiran" : ""}!',
           );
+          // Refresh notifications immediately so badge and lists are updated
+          try {
+            Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+          } catch (_) {}
           // Return true to indicate success
           Navigator.of(context).pop(true);
         } else {

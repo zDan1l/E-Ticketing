@@ -202,7 +202,7 @@ class NotificationProvider with ChangeNotifier {
 
   void startPeriodicFetch() {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       loadNotifications(silent: true);
     });
   }

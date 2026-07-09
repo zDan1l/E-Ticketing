@@ -81,6 +81,9 @@ class MainNavigationState extends State<MainNavigation> {
             final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
             ticketProvider.loadTickets(silent: true);
             ticketProvider.loadStats(silent: true);
+            try {
+              Provider.of<NotificationProvider>(context, listen: false).loadNotifications(silent: true);
+            } catch (_) {}
           }
         },
       ),
